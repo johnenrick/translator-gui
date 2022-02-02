@@ -19,7 +19,7 @@
     "babel-eslint": "^10.1.0",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^7.0.0",
-    "husky": "^7.0.4"
+    "lint-staged": "^12.3.3"
   },
   "eslintConfig": {
     "root": true,
@@ -35,14 +35,18 @@
     },
     "rules": {}
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint"
-    }
-  },
   "browserslist": [
     "> 1%",
     "last 2 versions",
     "not dead"
-  ]
+  ],
+  "gitHooks": {
+    "pre-commit": "lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,vue}": [
+      "vue-cli-service lint",
+      "git add"
+    ]
+  }
 }
