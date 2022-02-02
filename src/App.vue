@@ -138,7 +138,7 @@ export default {
         this.keys.splice(indx,1)
       }
     },
-    show (){
+    show (name){
       const selectedFile = document.getElementById('input').files[0]
       console.log(selectedFile)
     }
