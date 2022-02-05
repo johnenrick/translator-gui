@@ -2,28 +2,42 @@
   <div class='home'>
     <h1>JSON Translator</h1>
     <div class="buttons">
-      <button @click="addLanguage">Add language</button>
+      <button style="margin-bottom: 10px" @click="newAddLanguage">Add language</button>
       <input v-model="langName">
       <div class="grid-container">
         <div class="grid-data">
-          <b class="bordered">Keys <button style="float:right" @click="editKeys">{{editKeyButtonText}}</button> </b>
-          <div v-for="key in keys" v-bind:key="key" class="bordered">
-            {{key}}
-            <div style="float: right" v-bind:hidden="editingKeys">
-              <div @click="moveUp(key)" class="arrow up"/>
-              <div @click="moveDown(key)" class="arrow down"/>
-              <button @click="removeKey(key)">Delete</button>
-            </div>
-          </div>
+          <button @click="editKeys">{{editKeyButtonText}}</button>
         </div>
-        <div v-for="lang in langs" v-bind:key="lang" class="bordered">
+        <div v-for="lang in langs" v-bind:key="lang">
           {{lang}}
-          <input type="file" v-bind:hidden="isHidden">
-          <input type="submit" v-bind:hidden="isHidden" @click="show(lang)" id="input">
+          <span class="header-border"></span>
+          <input type="file" v-bind:hidden="isHidden" ref="input">
           <button @click="importing">import</button>
         </div>
       </div>
-      <button @click="addPhrase">Add Phrase</button>
+    </div>
+    <div class="buttons">
+      <div class="grid-container">
+        <div v-for="row in rows" v-bind:key="row">
+          {{row.header}}
+          <div class="grid-data">
+            <div v-for="data in row.rows" v-bind:key="data" class="bordered">
+                <div style="margin-left: 15%">{{data}}</div>
+                <div style="float:right" v-bind:hidden="editingKeys">
+                  <div v-show="row.header == 'keys'" @click="moveUp(data)" class="arrow up"/>
+                  <div v-show="row.header == 'keys'" @click="moveDown(data)" class="arrow down"/>
+                  <button v-show="row.header == 'keys'" @click="removeKey(data)">Delete</button>
+                </div>
+            </div>
+          </div>
+          <input v-show="row.header != 'keys'" type="file" v-bind:hidden="isHidden" @change="importJSON" id="file" ref="myFiles" accept=".json" multiple>
+          <button @click="importing(row.header)" v-show="row.header != 'keys'">import</button>
+        </div>
+      </div>
+      <div>
+        <span class="header-border"></span>
+      </div>
+      <button style="margin-top: 10px" @click="newAddPhrase">Add Phrase</button>
       <input v-model="phrase">
     </div>
   </div>
@@ -39,57 +53,64 @@ export default {
     return {
       langName: '',
       phrase: '',
+      cols: ['Keys'],
+      rows: [{
+        header: 'keys',
+        rows: []
+      }],
+      toDisplay: [],
       langs: [],
       keys: [],
-      retrieved: [],
+      retrieved: {},
       translations: [],
       isHidden: true,
       editingKeys: true,
-      editKeyButtonText: 'Edit'
+      editKeyButtonText: 'Edit',
+      file: '',
+      isUsing: Boolean,
+      uploader: '',
+      
     }
   },
   mounted() {
-    if(localStorage.getItem("keys")){
-    this.keys = localStorage.getItem("keys")
-    this.keys = JSON.parse(this.keys)
+    if(localStorage.getItem("cols")){
+      this.cols = localStorage.getItem("cols")
+      this.cols = JSON.parse(this.cols)
     }
-    if(localStorage.getItem("langs")){
-      this.langs = localStorage.getItem("langs")
-      this.langs = JSON.parse(this.langs)
+    if(localStorage.getItem("rows")){
+      this.rows = localStorage.getItem("rows")
+      this.rows = JSON.parse(this.rows)
+      for(let el in this.rows[0].rows){
+        this.keys[el] = this.rows[0].rows[el]
+      }
     }
+    this.isUsing = document.hidden
   },
   methods: {
-    logging () {
-      console.log("hello")
-    },
-    addLanguage () {
+    newAddLanguage () {
       if(this.langName.length > 0){
-        this.langs.push(this.langName)
-         var toStore = []
-        var tempObj = {}
-        var lang
-        for(lang in this.langs){
-          tempObj = this.langs[lang]
-          toStore.push(tempObj)
-        }
-        toStore = JSON.stringify(toStore)
-        localStorage.setItem('langs', toStore)
-        this.langName = ''
-        //setInterval(this.logging, 30000)
-      } else{
-        alert("invalid input")
+        this.cols.push(this.langName)
+        var header = this.langName
+        this.initLangRows(header)
+        this.langName = ""
+        this.newStoreChanges("cols")
       }
     },
-    addPhrase () {
+    newAddPhrase() {
       if(this.phrase.length > 0){
-        this.keys.push(this.phrase)
-        this.importKeys()
+        for(let x in this.rows){
+          if(x == 0){
+            this.rows[x].rows.push(this.phrase)    
+          }else{
+            this.rows[x].rows.push('')
+          }  
+        }
         this.phrase = ''
-      } else {
-        alert("invalid input")
+        this.newStoreChanges("rows")
       }
     },
-    importing (){
+    importing (uploader){
+      this.uploader = uploader
       this.isHidden = !this.isHidden
     },
     editKeys (){
@@ -100,50 +121,111 @@ export default {
         this.editKeyButtonText = 'Save'
       }
       if(this.editingKeys){
-        this.importKeys()
+        this.newStoreChanges('rows')
       }
     },
-    importKeys (){
+    newStoreChanges(type){
       var toStore = []
-      var tempObj = {}
-      var key
-      for(key in this.keys){
-        tempObj = this.keys[key]
-        toStore.push(tempObj)
+      if(type == 'cols'){
+        this.cols.forEach(element => {
+          toStore.push(element)
+        })
+      }else if(type == 'rows'){
+        this.rows.forEach(element => {
+          toStore.push(element)
+        })
+      }else{
+        type = 'rows'
+        toStore = this.rows
       }
       toStore = JSON.stringify(toStore)
-      localStorage.setItem('keys', toStore)
+      localStorage.setItem(type, toStore)
+    },
+    initLangRows(lang){
+      var arr = this.keys
+      var obj = {
+        header: '',
+        rows: []
+      }
+      for(let el in arr){
+        obj.rows[el] = ''
+      }
+      obj.header = lang
+      this.rows.push(obj)
+      console.log(this.rows)
+      this.newStoreChanges()
     },
     moveUp (key) {
-      var temp, indx
+      var temp, indx, val
       indx = this.keys.indexOf(key)
-      if(indx > 0){
-        temp = this.keys[indx - 1]
-        this.keys[indx - 1] = key
-        this.keys[indx] = temp
+      for(let el in this.rows){
+        if(indx > 0){
+          val = this.rows[el].rows[indx]
+          temp = this.rows[el].rows[indx - 1]
+          this.rows[el].rows[indx - 1] = val
+          this.rows[el].rows[indx] = temp
+        }
       }
     },
     moveDown (key) {
-      var temp, indx
+      var temp, indx, val
       indx = this.keys.indexOf(key)
-      if(indx < this.keys.length - 1){
-        temp = this.keys[indx + 1]
-        this.keys[indx + 1] = key
-        this.keys[indx] = temp
+      console.log(key + ' ' + indx)
+      for(let el in this.rows){
+        if(indx < this.rows[el].rows.length - 1){
+          val = this.rows[el].rows[indx]
+          temp = this.rows[el].rows[indx + 1]
+          this.rows[el].rows[indx + 1] = val
+          this.rows[el].rows[indx] = temp
+        }
       }
     },
     removeKey (key) {
       var indx = this.keys.indexOf(key)
       if(indx > -1){
-        this.keys.splice(indx,1)
+        for(let el in this.rows){
+          this.rows[el].rows.splice(indx,1) 
+        }
       }
     },
-    show (){
-      const selectedFile = document.getElementById('input').files[0]
-      console.log(selectedFile)
+    importJSON(event){
+      var theFile = event.target.files[0]
+      var fr = new FileReader
+      var jsonFile
+      fr.onload = function () {
+        jsonFile = fr.result
+        jsonFile = JSON.parse(jsonFile)
+        this.compareKeys(jsonFile)
+      }.bind(this)
+      fr.readAsText(theFile)
+    },
+    compareKeys (file){
+      var toPush = {
+        header: this.uploader,
+        rows: []
+      }
+      for(let lang in this.cols){
+        if(this.cols[lang] == this.uploader){
+          for(let f in file){
+            if(this.keys.indexOf(f) > -1){
+              toPush.rows[ this.keys.indexOf(f)] = file[f]
+            }
+            if(this.keys.length > toPush.rows.length){
+              toPush.rows[this.keys.length - 1] = ''
+            }
+          }
+        }
+      }
+      this.addImported(toPush)
+    },addImported (toAdd){
+      for(let row in this.rows){
+        if(toAdd.header == this.rows[row].header){
+          this.rows[row] = toAdd
+        }
+      }
+      this.newStoreChanges()
     }
   }
-
 }
 </script>
 
@@ -175,7 +257,17 @@ export default {
   text-align: left;
 }
 .bordered{
-  border: solid;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  border-bottom: solid;
+  border-width: thin;
+  min-height: 20px;
+}
+.header-border{
+  margin-top: 5px;
+  margin-bottom: 5px;
+  border-width: thick;
+  border-bottom: solid;
 }
 .arrow {
   border: solid black;
