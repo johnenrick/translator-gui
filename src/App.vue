@@ -22,16 +22,19 @@
           {{row.header}}
           <div class="grid-data">
             <div v-for="data in row.rows" v-bind:key="data" class="bordered">
+              <div class="grid-options">
                 <div style="margin-left: 15%">{{data}}</div>
-                <div style="float:right" v-bind:hidden="editingKeys">
-                  <div v-show="row.header == 'keys'" @click="moveUp(data)" class="arrow up"/>
-                  <div v-show="row.header == 'keys'" @click="moveDown(data)" class="arrow down"/>
-                  <button v-show="row.header == 'keys'" @click="removeKey(data)">Delete</button>
+                <div style="float:right"  v-bind:hidden="editingKeys">
+                  <div style="max-height: 18px" v-show="row.header == 'keys'" @click="moveUp(data)" class="arrow up"/>
+                  <div style="max-height: 18px" v-show="row.header == 'keys'" @click="moveDown(data)" class="arrow down"/>
+                  <button style="max-height: 18px; font-size: 16px" v-show="row.header == 'keys'" @click="removeKey(data)">Delete</button>
                 </div>
+              </div>
             </div>
           </div>
           <input v-show="row.header != 'keys'" type="file" v-bind:hidden="isHidden" @change="importJSON" id="file" ref="myFiles" accept=".json" multiple>
           <button @click="importing(row.header)" v-show="row.header != 'keys'">import</button>
+        <button v-show="row.header != 'keys'" id="downloadAnchorElem" @click="exportRows(row.header)">Export</button>
         </div>
       </div>
       <div>
@@ -97,6 +100,7 @@ export default {
       }
     },
     newAddPhrase() {
+      console.log(this.keys.length + " old ini")
       if(this.phrase.length > 0){
         for(let x in this.rows){
           if(x == 0){
@@ -105,13 +109,35 @@ export default {
             this.rows[x].rows.push('')
           }  
         }
+        this.keys.push(this.phrase)
         this.phrase = ''
+        console.log(this.keys.length + " new ini")
         this.newStoreChanges("rows")
       }
     },
     importing (uploader){
       this.uploader = uploader
       this.isHidden = !this.isHidden
+    },
+    exportRows(header){
+      var toExport = []
+      for(let r in this.rows){
+        if(header == this.rows[r].header){
+          for(let el in this.rows[r].rows){
+            toExport.push(this.rows[r].rows[el])
+          }
+        }
+        var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(toExport))
+        var downloadAnchorNode = document.createElement('a')
+        downloadAnchorNode.setAttribute("href",     dataStr)
+        downloadAnchorNode.setAttribute("download", header + ".json")
+        document.body.appendChild(downloadAnchorNode)
+        downloadAnchorNode.click()
+        downloadAnchorNode.remove()
+        
+      }
+      console.log(header)
+
     },
     editKeys (){
       this.editingKeys = !this.editingKeys
@@ -142,6 +168,7 @@ export default {
       localStorage.setItem(type, toStore)
     },
     initLangRows(lang){
+      console.log(this.keys.length + " sugad sini kahalaba")
       var arr = this.keys
       var obj = {
         header: '',
@@ -198,6 +225,7 @@ export default {
         this.compareKeys(jsonFile)
       }.bind(this)
       fr.readAsText(theFile)
+      this.isHidden = !this.isHidden
     },
     compareKeys (file){
       var toPush = {
@@ -244,6 +272,10 @@ export default {
 .buttons button{
   font-size: 20px;
   margin: 0 10px;
+}
+.grid-options{
+  display: grid;
+  grid-auto-flow: column;
 }
 .grid-container{
   display: grid;
