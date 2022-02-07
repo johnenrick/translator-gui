@@ -34,7 +34,7 @@
           </div>
           <input v-show="row.header != 'keys'" type="file" v-bind:hidden="isHidden" @change="importJSON" id="file" ref="myFiles" accept=".json" multiple>
           <button @click="importing(row.header)" v-show="row.header != 'keys'">import</button>
-        <button v-show="row.header != 'keys'" id="downloadAnchorElem" @click="exportRows(row.header)">Export</button>
+          <button v-show="row.header != 'keys'" id="downloadAnchorElem" @click="exportRows(row.header)">Export</button>
         </div>
       </div>
       <div>
@@ -100,7 +100,6 @@ export default {
       }
     },
     newAddPhrase() {
-      console.log(this.keys.length + " old ini")
       if(this.phrase.length > 0){
         for(let x in this.rows){
           if(x == 0){
@@ -111,7 +110,6 @@ export default {
         }
         this.keys.push(this.phrase)
         this.phrase = ''
-        console.log(this.keys.length + " new ini")
         this.newStoreChanges("rows")
       }
     },
@@ -134,10 +132,9 @@ export default {
         document.body.appendChild(downloadAnchorNode)
         downloadAnchorNode.click()
         downloadAnchorNode.remove()
-        
+        this.newStoreChanges('rows')
+        this.newStoreChanges('cols')
       }
-      console.log(header)
-
     },
     editKeys (){
       this.editingKeys = !this.editingKeys
@@ -166,9 +163,9 @@ export default {
       }
       toStore = JSON.stringify(toStore)
       localStorage.setItem(type, toStore)
+      console.log("nasave na sir")
     },
     initLangRows(lang){
-      console.log(this.keys.length + " sugad sini kahalaba")
       var arr = this.keys
       var obj = {
         header: '',
@@ -179,7 +176,6 @@ export default {
       }
       obj.header = lang
       this.rows.push(obj)
-      console.log(this.rows)
       this.newStoreChanges()
     },
     moveUp (key) {
@@ -197,7 +193,6 @@ export default {
     moveDown (key) {
       var temp, indx, val
       indx = this.keys.indexOf(key)
-      console.log(key + ' ' + indx)
       for(let el in this.rows){
         if(indx < this.rows[el].rows.length - 1){
           val = this.rows[el].rows[indx]
@@ -236,7 +231,14 @@ export default {
         if(this.cols[lang] == this.uploader){
           for(let f in file){
             if(this.keys.indexOf(f) > -1){
-              toPush.rows[ this.keys.indexOf(f)] = file[f]
+              toPush.rows[this.keys.indexOf(f)] = file[f]
+            }else{
+              this.keys.push(f)
+              this.rows[0].rows.push(f)
+              toPush.rows[this.keys.indexOf(f)] = file[f]
+              for(let el in this.cols){
+                console.log(el)
+              }
             }
             if(this.keys.length > toPush.rows.length){
               toPush.rows[this.keys.length - 1] = ''
