@@ -1,53 +1,66 @@
 <template>
-  <div class='home'>
-    <h1>JSON Translator</h1>
-    <div class="buttons">
-      <button style="margin-bottom: 10px" @click="newAddLanguage">Add language</button>
-      <input v-model="langName">
-      <div class="grid-container">
-        <div class="grid-data">
-          <button @click="editKeys">{{editKeyButtonText}}</button>
+  <div class='container'>
+    <div class="row">
+      <h1>JSON Translator</h1>
+    </div>
+    <div class="row mb-4">
+      <div class="col">
+        <div class="row mb-2">
+          <div class="col-4">
+            <button class="btn btn-outline-primary" @click="newAddLanguage">Add language</button>
+          </div>
+          <div class="col-8">
+            <input class="form-control" v-model="langName">
+          </div>
         </div>
-        <div v-for="lang in langs" v-bind:key="lang">
-          {{lang}}
-          <span class="header-border"></span>
-          <input type="file" v-bind:hidden="isHidden" ref="input">
-          <button @click="importing">import</button>
+        <div class="col">
+          <div v-for="lang in langs" v-bind:key="lang">
+            {{lang}}
+            <input type="file" v-bind:hidden="isHidden" ref="input">
+            <button class="btn btn-outline-secondary" @click="importing">import</button>
+          </div>
         </div>
       </div>
     </div>
-    <div class="buttons">
-      <div class="grid-container">
-        <div v-for="row in rows" v-bind:key="row">
-          {{row.header}}
-          <div class="grid-data">
+    <div class="grid-container">
+      <div v-for="row in rows" v-bind:key="row">
+        {{row.header}}
+        <div class="grid-data">
+          <div class="row mt-3">
             <div v-for="data in row.rows" v-bind:key="data" class="bordered">
               <div class="grid-options">
-                <div style="margin-left: 15%">{{data}}</div>
-                <div style="float:right"  v-bind:hidden="editingKeys">
+                <div @click="editPhrase(data)" style="margin-left: 15%, float: left; min-height: 32px">{{data}}</div>
+                <div style="float:right; text-align: right; margin-right: 25px">
                   <div style="max-height: 18px" v-show="row.header == 'keys'" @click="moveUp(data)" class="arrow up"/>
-                  <div style="max-height: 18px" v-show="row.header == 'keys'" @click="moveDown(data)" class="arrow down"/>
-                  <button style="max-height: 18px; font-size: 16px" v-show="row.header == 'keys'" @click="removeKey(data)">Delete</button>
+                    <div style="max-height: 18px; margin-right: 15px" v-show="row.header == 'keys'" @click="moveDown(data)" class="arrow down"/>
+                      <button class="btn btn-outline-secondary btn-sm" v-show="row.header == 'keys'" @click="removeKey(data)">Delete</button>
                 </div>
               </div>
             </div>
           </div>
-          <input v-show="row.header != 'keys'" type="file" v-bind:hidden="isHidden" @change="importJSON" id="file" ref="myFiles" accept=".json" multiple>
-          <button @click="importing(row.header)" v-show="row.header != 'keys'">import</button>
-          <button v-show="row.header != 'keys'" id="downloadAnchorElem" @click="exportRows(row.header)">Export</button>
+        </div>
+        <input v-show="row.header != 'keys'" type="file" hidden @change="importJSON" :id="row.header" ref="myFiles" accept=".json">
+        <div class="btn-group">
+          <button class="btn btn-outline-secondary" @click="importing(row.header)" v-show="row.header != 'keys'">import</button>
+          <button class="btn btn-outline-secondary" v-show="row.header != 'keys'" @click="exportRows(row.header)">Export</button>
         </div>
       </div>
-      <div>
-        <span class="header-border"></span>
-      </div>
-      <button style="margin-top: 10px" @click="newAddPhrase">Add Phrase</button>
-      <input v-model="phrase">
     </div>
+    <div>
+      <span class="header-border"></span>
+    </div>
+    <div class="row mt-4">
+      <div class="col-4">
+        <button class="btn btn-outline-primary" @click="newAddPhrase">Add Phrase</button>
+      </div>
+      <div class="col-8">
+        <input class="form-control" v-model="phrase">
+      </div>
+    </div>  
   </div>
 </template>
 
 <script>
-
 export default {
   name: 'Home',
   components: {
@@ -61,17 +74,15 @@ export default {
         header: 'keys',
         rows: []
       }],
-      toDisplay: [],
       langs: [],
       keys: [],
-      retrieved: {},
-      translations: [],
+      timer: Number,
       isHidden: true,
-      editingKeys: true,
       editKeyButtonText: 'Edit',
       file: '',
-      isUsing: Boolean,
+      isUsing: 0,
       uploader: '',
+      autosave: false
       
     }
   },
@@ -87,9 +98,25 @@ export default {
         this.keys[el] = this.rows[0].rows[el]
       }
     }
+    document.addEventListener("visibilitychange", this.handleVisibilityChange, false);
     this.isUsing = document.hidden
   },
   methods: {
+    editPhrase(data){
+      console.log(data + " is being edited")
+    },
+    handleVisibilityChange() {
+      if(document.visibilityState == 'hidden'){
+        clearInterval(this.timer)
+      }else if (document.visibilityState == 'visible'){
+        if(this.autosave == true){
+          this.timer = setInterval(() => {
+            this.newStoreChanges('rows')
+            this.newStoreChanges('cols')
+          },30000)
+        }
+      }
+    },
     newAddLanguage () {
       if(this.langName.length > 0){
         this.cols.push(this.langName)
@@ -114,18 +141,22 @@ export default {
       }
     },
     importing (uploader){
+      document.getElementById(uploader).click()
       this.uploader = uploader
-      this.isHidden = !this.isHidden
     },
     exportRows(header){
-      var toExport = []
+      var tempK, tempV
+      var row = {}
       for(let r in this.rows){
         if(header == this.rows[r].header){
           for(let el in this.rows[r].rows){
-            toExport.push(this.rows[r].rows[el])
+            tempK = this.keys[el]
+            tempV = this.rows[r].rows[el]
+            Object.assign(row, {[tempK]: tempV})
           }
         }
-        var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(toExport))
+      }
+        var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(row))
         var downloadAnchorNode = document.createElement('a')
         downloadAnchorNode.setAttribute("href",     dataStr)
         downloadAnchorNode.setAttribute("download", header + ".json")
@@ -134,7 +165,7 @@ export default {
         downloadAnchorNode.remove()
         this.newStoreChanges('rows')
         this.newStoreChanges('cols')
-      }
+        this.autosave = true
     },
     editKeys (){
       this.editingKeys = !this.editingKeys
@@ -148,6 +179,7 @@ export default {
       }
     },
     newStoreChanges(type){
+      this.autosave = true
       var toStore = []
       if(type == 'cols'){
         this.cols.forEach(element => {
@@ -163,7 +195,6 @@ export default {
       }
       toStore = JSON.stringify(toStore)
       localStorage.setItem(type, toStore)
-      console.log("nasave na sir")
     },
     initLangRows(lang){
       var arr = this.keys
@@ -189,6 +220,7 @@ export default {
           this.rows[el].rows[indx] = temp
         }
       }
+      this.newStoreChanges('rows')
     },
     moveDown (key) {
       var temp, indx, val
@@ -201,6 +233,7 @@ export default {
           this.rows[el].rows[indx] = temp
         }
       }
+      this.newStoreChanges('rows')
     },
     removeKey (key) {
       var indx = this.keys.indexOf(key)
@@ -209,6 +242,7 @@ export default {
           this.rows[el].rows.splice(indx,1) 
         }
       }
+      this.newStoreChanges('rows')
     },
     importJSON(event){
       var theFile = event.target.files[0]
