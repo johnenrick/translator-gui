@@ -13,6 +13,7 @@
             <input class="form-control" v-model="langName">
           </div>
         </div>
+        <div class="row mt-4"><span class="header-border"></span></div>
         <div class="col">
           <div v-for="lang in langs" v-bind:key="lang">
             {{lang}}
@@ -31,24 +32,25 @@
               <div class="grid-options">
                 <div @click="editPhrase(data)" style="margin-left: 15%, float: left; min-height: 32px">{{data}}</div>
                 <div style="float:right; text-align: right; margin-right: 25px">
-                  <div style="max-height: 18px" v-show="row.header == 'keys'" @click="moveUp(data)" class="arrow up"/>
-                    <div style="max-height: 18px; margin-right: 15px" v-show="row.header == 'keys'" @click="moveDown(data)" class="arrow down"/>
-                      <button class="btn btn-outline-secondary btn-sm" v-show="row.header == 'keys'" @click="removeKey(data)">Delete</button>
+                  <div style="max-height: 18px" v-show="row.header == 'Keys'" @click="moveUp(data)" class="arrow up"/>
+                    <div style="max-height: 18px; margin-right: 15px" v-show="row.header == 'Keys'" @click="moveDown(data)" class="arrow down"/>
+                      <button class="btn btn-outline-secondary btn-sm" v-show="row.header == 'Keys'" @click="removeKey(data)">Delete</button>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <input v-show="row.header != 'keys'" type="file" hidden @change="importJSON" :id="row.header" ref="myFiles" accept=".json">
+        <input v-show="row.header != 'Keys'" type="file" hidden @change="importJSON" :id="row.header" ref="myFiles" accept=".json">
         <div class="btn-group">
-          <button class="btn btn-outline-secondary" @click="importing(row.header)" v-show="row.header != 'keys'">import</button>
-          <button class="btn btn-outline-secondary" v-show="row.header != 'keys'" @click="exportRows(row.header)">Export</button>
+          <button class="btn btn-outline-secondary" @click="importing(row.header)" v-show="row.header != 'Keys'">import</button>
+          <button class="btn btn-outline-secondary" v-show="row.header != 'Keys'" @click="exportRows(row.header)">Export</button>
         </div>
       </div>
     </div>
     <div>
       <span class="header-border"></span>
     </div>
+    <div class="row mt-4"><span class="header-border"></span></div>
     <div class="row mt-4">
       <div class="col-4">
         <button class="btn btn-outline-primary" @click="newAddPhrase">Add Phrase</button>
@@ -71,7 +73,7 @@ export default {
       phrase: '',
       cols: ['Keys'],
       rows: [{
-        header: 'keys',
+        header: 'Keys',
         rows: []
       }],
       langs: [],
@@ -119,8 +121,9 @@ export default {
     },
     newAddLanguage () {
       if(this.langName.length > 0){
-        this.cols.push(this.langName)
-        var header = this.langName
+        var x = this.langName.charAt(0).toUpperCase() + this.langName.slice(1);
+        this.cols.push(x)
+        var header = x
         this.initLangRows(header)
         this.langName = ""
         this.newStoreChanges("cols")
@@ -167,17 +170,6 @@ export default {
         this.newStoreChanges('cols')
         this.autosave = true
     },
-    editKeys (){
-      this.editingKeys = !this.editingKeys
-      if(this.editingKeys){
-        this.editKeyButtonText = 'Edit'
-      } else{
-        this.editKeyButtonText = 'Save'
-      }
-      if(this.editingKeys){
-        this.newStoreChanges('rows')
-      }
-    },
     newStoreChanges(type){
       this.autosave = true
       var toStore = []
@@ -212,6 +204,11 @@ export default {
     moveUp (key) {
       var temp, indx, val
       indx = this.keys.indexOf(key)
+      if(indx > 0){
+        temp = this.keys[indx - 1]
+        this.keys[indx] = temp
+        this.keys[indx - 1] = key
+      }
       for(let el in this.rows){
         if(indx > 0){
           val = this.rows[el].rows[indx]
@@ -225,6 +222,11 @@ export default {
     moveDown (key) {
       var temp, indx, val
       indx = this.keys.indexOf(key)
+      if(indx < this.keys.length - 1){
+        temp = this.keys[indx - 1]
+        this.keys[indx] = temp
+        this.keys[indx - 1] = key
+      }
       for(let el in this.rows){
         if(indx < this.rows[el].rows.length - 1){
           val = this.rows[el].rows[indx]
@@ -270,9 +272,6 @@ export default {
               this.keys.push(f)
               this.rows[0].rows.push(f)
               toPush.rows[this.keys.indexOf(f)] = file[f]
-              for(let el in this.cols){
-                console.log(el)
-              }
             }
             if(this.keys.length > toPush.rows.length){
               toPush.rows[this.keys.length - 1] = ''
@@ -281,7 +280,8 @@ export default {
         }
       }
       this.addImported(toPush)
-    },addImported (toAdd){
+    },
+    addImported (toAdd){
       for(let row in this.rows){
         if(toAdd.header == this.rows[row].header){
           this.rows[row] = toAdd
