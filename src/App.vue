@@ -115,7 +115,7 @@ export default {
       this.rows[this.cols.indexOf(header)].rows[this.rows[this.cols.indexOf(header)].rows.indexOf(data)] = newVal.target.value
       this.newStoreChanges("rows")
     },
-    removePhrase(data,header){
+    removePhrase(){
       var header = this.isEdited.col
       var data = this.isEdited.data
       this.rows[this.cols.indexOf(header)].rows[this.rows[this.cols.indexOf(header)].rows.indexOf(data)] = ''
