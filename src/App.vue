@@ -17,7 +17,7 @@
         <div class="col">
           <div v-for="lang in langs" v-bind:key="lang">
             {{lang}}
-            <input type="file" v-bind:hidden="isHidden" ref="input">
+            <input type="file" hidden ref="input">
             <button class="btn btn-outline-secondary" @click="importing">import</button>
           </div>
         </div>
@@ -30,11 +30,12 @@
           <div class="row mt-3">
             <div v-for="data in row.rows" v-bind:key="data" class="bordered">
               <div class="grid-options">
-                <div @click="editPhrase(data)" style="margin-left: 15%, float: left; min-height: 32px">{{data}}</div>
-                <div style="float:right; text-align: right; margin-right: 25px">
-                  <div style="max-height: 18px" v-show="row.header == 'Keys'" @click="moveUp(data)" class="arrow up"/>
-                    <div style="max-height: 18px; margin-right: 15px" v-show="row.header == 'Keys'" @click="moveDown(data)" class="arrow down"/>
-                      <button class="btn btn-outline-secondary btn-sm" v-show="row.header == 'Keys'" @click="removeKey(data)">Delete</button>
+                <div  class="input-group">
+                  <input class="form-control" @keydown.enter="editPhrase($event)" @click="setEditPhrase(data,row.header)" :value="data" type="text"/>
+                  <button class="btn btn-outline-secondary rounded-circle" v-show="row.header == 'Keys'" @click="moveUp(data)"><span class="arrow up"/></button>
+                  <button class="btn btn-outline-secondary rounded-circle" v-show="row.header == 'Keys'" @click="moveDown(data)"><span class="arrow down"/></button>
+                  <button class="btn btn-outline-danger rounded-pill" v-show="row.header == 'Keys'" @click="removeKey(data)">Delete</button>
+                  <button class="btn btn-outline-danger rounded-circle" v-show="row.header != 'Keys' && isEdited.col == row.header && isEdited.data == data" @click="removePhrase">X</button>
                 </div>
               </div>
             </div>
@@ -79,10 +80,12 @@ export default {
       langs: [],
       keys: [],
       timer: Number,
-      isHidden: true,
       editKeyButtonText: 'Edit',
       file: '',
-      isUsing: 0,
+      isEdited: {
+        col: String,
+        data: String
+      },
       uploader: '',
       autosave: false
       
@@ -101,11 +104,24 @@ export default {
       }
     }
     document.addEventListener("visibilitychange", this.handleVisibilityChange, false);
-    this.isUsing = document.hidden
   },
   methods: {
-    editPhrase(data){
-      console.log(data + " is being edited")
+    editPhrase(newVal){
+      var header = this.isEdited.col
+      var data = this.isEdited.data
+      this.rows[this.cols.indexOf(header)].rows[this.rows[this.cols.indexOf(header)].rows.indexOf(data)] = newVal.target.value
+      this.newStoreChanges("rows")
+    },
+    removePhrase(data,header){
+      var header = this.isEdited.col
+      var data = this.isEdited.data
+      this.rows[this.cols.indexOf(header)].rows[this.rows[this.cols.indexOf(header)].rows.indexOf(data)] = ''
+      this.newStoreChanges("rows")
+      
+    },
+    setEditPhrase(data,header){
+      this.isEdited.col = header
+      this.isEdited.data = data
     },
     handleVisibilityChange(){
       if(document.visibilityState == 'hidden'){
@@ -130,17 +146,21 @@ export default {
       }
     },
     newAddPhrase(){
-      if(this.phrase.length > 0){
-        for(let x in this.rows){
-          if(x == 0){
-            this.rows[x].rows.push(this.phrase)    
-          }else{
-            this.rows[x].rows.push('')
-          }  
+      if(this.keys.indexOf(this.phrase) == -1){
+        if(this.phrase.length > 0){
+          for(let x in this.rows){
+            if(x == 0){
+              this.rows[x].rows.push(this.phrase)    
+            }else{
+              this.rows[x].rows.push('')
+            }  
+          }
+          this.keys.push(this.phrase)
+          this.phrase = ''
+          this.newStoreChanges("rows")
         }
-        this.keys.push(this.phrase)
-        this.phrase = ''
-        this.newStoreChanges("rows")
+      }else{
+        console.log("phrase already exists")
       }
     },
     importing (uploader){
@@ -256,7 +276,6 @@ export default {
         this.compareKeys(jsonFile)
       }.bind(this)
       fr.readAsText(theFile)
-      this.isHidden = !this.isHidden
     },
     compareKeys (file){
       var toPush = {
@@ -342,7 +361,6 @@ export default {
   border-width: 0 3px 3px 0;
   display: inline-block;
   padding: 3px;
-  margin-right: 5px;
 }
 .right {
   transform: rotate(-45deg);
