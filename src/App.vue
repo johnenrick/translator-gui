@@ -107,7 +107,7 @@ export default {
     editPhrase(data){
       console.log(data + " is being edited")
     },
-    handleVisibilityChange() {
+    handleVisibilityChange(){
       if(document.visibilityState == 'hidden'){
         clearInterval(this.timer)
       }else if (document.visibilityState == 'visible'){
@@ -119,7 +119,7 @@ export default {
         }
       }
     },
-    newAddLanguage () {
+    newAddLanguage (){
       if(this.langName.length > 0){
         var x = this.langName.charAt(0).toUpperCase() + this.langName.slice(1);
         this.cols.push(x)
@@ -129,7 +129,7 @@ export default {
         this.newStoreChanges("cols")
       }
     },
-    newAddPhrase() {
+    newAddPhrase(){
       if(this.phrase.length > 0){
         for(let x in this.rows){
           if(x == 0){
@@ -159,16 +159,16 @@ export default {
           }
         }
       }
-        var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(row))
-        var downloadAnchorNode = document.createElement('a')
-        downloadAnchorNode.setAttribute("href",     dataStr)
-        downloadAnchorNode.setAttribute("download", header + ".json")
-        document.body.appendChild(downloadAnchorNode)
-        downloadAnchorNode.click()
-        downloadAnchorNode.remove()
-        this.newStoreChanges('rows')
-        this.newStoreChanges('cols')
-        this.autosave = true
+      var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(row, null, '\t'))
+      var downloadAnchorNode = document.createElement('a')
+      downloadAnchorNode.setAttribute("href",     dataStr)
+      downloadAnchorNode.setAttribute("download", header + ".json")
+      document.body.appendChild(downloadAnchorNode)
+      downloadAnchorNode.click()
+      downloadAnchorNode.remove()
+      this.newStoreChanges('rows')
+      this.newStoreChanges('cols')
+      this.autosave = true
     },
     newStoreChanges(type){
       this.autosave = true
@@ -237,7 +237,7 @@ export default {
       }
       this.newStoreChanges('rows')
     },
-    removeKey (key) {
+    removeKey (key){
       var indx = this.keys.indexOf(key)
       if(indx > -1){
         for(let el in this.rows){
