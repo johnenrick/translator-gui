@@ -14,18 +14,22 @@
           </div>
         </div>
         <div class="row mt-4"><span class="header-border"></span></div>
-        <div class="col">
-          <div v-for="lang in langs" v-bind:key="lang">
-            {{lang}}
-            <input type="file" hidden ref="input">
-            <button class="btn btn-outline-secondary" @click="importing">import</button>
-          </div>
-        </div>
       </div>
     </div>
     <div class="grid-container">
       <div v-for="row in rows" v-bind:key="row">
-        {{row.header}}
+        <div class="row" style="min-height: 50px">
+          <div class="col">
+            {{row.header}}
+          </div>
+          <div class="col">
+            <div class="btn-group">
+              <button class="btn btn-outline-secondary" @click="importing(row.header)" v-show="row.header != 'Keys'">import</button>
+              <button class="btn btn-outline-secondary" v-show="row.header != 'Keys'" @click="exportRows(row.header)">Export</button>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-4"><span class="header-border"></span></div>
         <div class="grid-data">
           <div class="row mt-3">
             <div v-for="data in row.rows" v-bind:key="data" class="bordered">
@@ -77,7 +81,6 @@ export default {
         header: 'Keys',
         rows: []
       }],
-      langs: [],
       keys: [],
       timer: Number,
       editKeyButtonText: 'Edit',
