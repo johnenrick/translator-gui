@@ -243,9 +243,9 @@ export default {
       var temp, indx, val
       indx = this.keys.indexOf(key)
       if(indx < this.keys.length - 1){
-        temp = this.keys[indx - 1]
+        temp = this.keys[indx + 1]
         this.keys[indx] = temp
-        this.keys[indx - 1] = key
+        this.keys[indx + 1] = key
       }
       for(let el in this.rows){
         if(indx < this.rows[el].rows.length - 1){
