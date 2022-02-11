@@ -5,12 +5,12 @@
     </div>
     <div class="row mb-4">
       <div class="col">
-        <div class="row mb-2">
+        <div class="row mb-2 p-4">
           <div class="col-4">
             <button class="btn btn-outline-primary" @click="newAddLanguage">Add language</button>
           </div>
           <div class="col-8">
-            <input class="form-control" v-model="langName">
+            <input class="form-control" @keydown.enter="newAddLanguage" v-model="langName">
           </div>
         </div>
         <div class="row mt-4"><span class="header-border"></span></div>
@@ -18,7 +18,7 @@
     </div>
     <div class="grid-container">
       <div v-for="row in rows" v-bind:key="row">
-        <div class="row" style="min-height: 50px">
+        <div class="row" style="min-height: 40px">
           <div class="col">
             {{row.header}}
           </div>
@@ -30,23 +30,22 @@
           </div>
         </div>
         <div class="row mt-4"><span class="header-border"></span></div>
-        <div class="grid-data">
-          <div class="row mt-3">
-            <div v-for="data in row.rows" v-bind:key="data" class="bordered">
-              <div class="grid-options">
-                <div  class="input-group">
-                  <input class="form-control" @keydown.enter="editPhrase($event)" @click="setEditPhrase(data,row.header)" :value="data" type="text"/>
-                  <button class="btn btn-outline-secondary rounded-circle" v-show="row.header == 'Keys'" @click="moveUp(data)"><span class="arrow up"/></button>
-                  <button class="btn btn-outline-secondary rounded-circle" v-show="row.header == 'Keys'" @click="moveDown(data)"><span class="arrow down"/></button>
-                  <button class="btn btn-outline-danger rounded-pill" v-show="row.header == 'Keys'" @click="removeKey(data)">Delete</button>
-                  <button class="btn btn-outline-danger rounded-circle" v-show="row.header != 'Keys' && isEdited.col == row.header && isEdited.data == data" @click="removePhrase">X</button>
-                </div>
+        <div class="row mt-3">
+          <div v-for="data in row.rows" v-bind:key="data">
+            <div  class="input-group border-bottom" style="min-height: 40px">
+              <div class="input-group-prepend" v-show="row.header == 'Keys'">
+                <span class="input-group-text" @click="hey(this.id)" :id="row.rows.indexOf(data)">{{row.rows.indexOf(data) + 1}}</span>
               </div>
+              <input style="min-height: 40px" class="form-control border-0" @keydown.enter="editPhrase($event)" @click="setEditPhrase(data,row.header)" :value="data" type="text"/>
+              <button style="height: 40px; width: 40px" class="btn btn-outline-secondary rounded-circle" v-show="row.header == 'Keys'" @click="moveUp(data)"><span class="arrow up"/></button>
+              <button style="height: 40px; width: 40px" class="btn btn-outline-secondary rounded-circle" v-show="row.header == 'Keys'" @click="moveDown(data)"><span class="arrow down"/></button>
+              <button class="btn btn-outline-danger rounded-pill" v-show="row.header == 'Keys'" @click="removeKey(data)">Delete</button>
+              <button style="height: 40px; width: 40px" class="btn btn-outline-danger rounded-circle" v-show="row.header != 'Keys' && isEdited.col == row.header && isEdited.data == data" @click="removePhrase">X</button>
             </div>
           </div>
         </div>
         <input v-show="row.header != 'Keys'" type="file" hidden @change="importJSON" :id="row.header" ref="myFiles" accept=".json">
-        <div class="btn-group">
+        <div class="btn-group mt-4">
           <button class="btn btn-outline-secondary" @click="importing(row.header)" v-show="row.header != 'Keys'">import</button>
           <button class="btn btn-outline-secondary" v-show="row.header != 'Keys'" @click="exportRows(row.header)">Export</button>
         </div>
@@ -56,7 +55,7 @@
       <span class="header-border"></span>
     </div>
     <div class="row mt-4"><span class="header-border"></span></div>
-    <div class="row mt-4">
+    <div class="row mt-4 p-4">
       <div class="col-4">
         <button class="btn btn-outline-primary" @click="newAddPhrase">Add Phrase</button>
       </div>
@@ -90,6 +89,8 @@ export default {
         data: String
       },
       uploader: '',
+      keyTableLength: Number,
+      order: 0,
       autosave: false
       
     }
@@ -105,10 +106,14 @@ export default {
       for(let el in this.rows[0].rows){
         this.keys[el] = this.rows[0].rows[el]
       }
+      this.keyTableLength = this.keys.length
     }
     document.addEventListener("visibilitychange", this.handleVisibilityChange, false);
   },
   methods: {
+    hey(val){
+      console.log(val)
+    },
     editPhrase(newVal){
       var header = this.isEdited.col
       var data = this.isEdited.data
@@ -120,7 +125,6 @@ export default {
       var data = this.isEdited.data
       this.rows[this.cols.indexOf(header)].rows[this.rows[this.cols.indexOf(header)].rows.indexOf(data)] = ''
       this.newStoreChanges("rows")
-      
     },
     setEditPhrase(data,header){
       this.isEdited.col = header
@@ -301,12 +305,24 @@ export default {
           }
         }
       }
+      this.keyTableLength = this.keys.length
       this.addImported(toPush)
     },
     addImported (toAdd){
       for(let row in this.rows){
         if(toAdd.header == this.rows[row].header){
           this.rows[row] = toAdd
+        }
+      }
+      this.checkTranslationColLength()
+    },
+    checkTranslationColLength(){
+      for(let x in this.rows){
+        if(this.rows[x].rows.length < this.keyTableLength){
+          let ctr = this.keyTableLength - this.rows[x].rows.length
+          for(; ctr > 0; ctr--){
+            this.rows[x].rows.push('')
+          }
         }
       }
       this.newStoreChanges()
