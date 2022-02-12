@@ -18,30 +18,22 @@
     </div>
     <div class="grid-container">
       <div v-for="row in rows" v-bind:key="row">
-        <div class="row" style="min-height: 40px">
-          <div class="col">
-            {{row.header}}
-          </div>
-          <div class="col">
-            <div class="btn-group">
-              <button class="btn btn-outline-secondary" @click="importing(row.header)" v-show="row.header != 'Keys'">import</button>
-              <button class="btn btn-outline-secondary" v-show="row.header != 'Keys'" @click="exportRows(row.header)">Export</button>
-            </div>
-          </div>
-        </div>
+        <headers :header="row.header" @exportValues="exportRows" @importValues="importing"/>
         <div class="row mt-4"><span class="header-border"></span></div>
         <div class="row mt-3">
           <div v-for="data in row.rows" v-bind:key="data">
-            <div  class="input-group border-bottom" style="min-height: 40px">
-              <div class="input-group-prepend" v-show="row.header == 'Keys'">
-                <span class="input-group-text" @click="hey(this.id)" :id="row.rows.indexOf(data)">{{row.rows.indexOf(data) + 1}}</span>
-              </div>
-              <input style="min-height: 40px" class="form-control border-0" @keydown.enter="editPhrase($event)" @click="setEditPhrase(data,row.header)" :value="data" type="text"/>
-              <button style="height: 40px; width: 40px" class="btn btn-outline-secondary rounded-circle" v-show="row.header == 'Keys'" @click="moveUp(data)"><span class="arrow up"/></button>
-              <button style="height: 40px; width: 40px" class="btn btn-outline-secondary rounded-circle" v-show="row.header == 'Keys'" @click="moveDown(data)"><span class="arrow down"/></button>
-              <button class="btn btn-outline-danger rounded-pill" v-show="row.header == 'Keys'" @click="removeKey(data)">Delete</button>
-              <button style="height: 40px; width: 40px" class="btn btn-outline-danger rounded-circle" v-show="row.header != 'Keys' && isEdited.col == row.header && isEdited.data == data" @click="removePhrase">X</button>
-            </div>
+            <tableData
+              :val="data"
+               :header="row.header"
+              :rowNum="row.rows.indexOf(data)"
+              @edit="editPhrase"
+              @setEdit="setEditPhrase"
+              @up="moveUp"
+              @down="moveDown"
+              @removeK="removeKey"
+              @removeP="removePhrase"
+              @sendIndex="displayIndex"
+            />
           </div>
         </div>
         <input v-show="row.header != 'Keys'" type="file" hidden @change="importJSON" :id="row.header" ref="myFiles" accept=".json">
@@ -67,9 +59,15 @@
 </template>
 
 <script>
+
+import headers from "./components/Headers.vue"
+import tableData from "./components/TableData.vue"
+
 export default {
   name: 'Home',
   components: {
+    headers,
+    tableData
   },
   data() {
     return {
@@ -90,7 +88,7 @@ export default {
       },
       uploader: '',
       keyTableLength: Number,
-      order: 0,
+      order: Number,
       autosave: false
       
     }
@@ -111,18 +109,19 @@ export default {
     document.addEventListener("visibilitychange", this.handleVisibilityChange, false);
   },
   methods: {
-    hey(val){
-      console.log(val)
-    },
     editPhrase(newVal){
-      var header = this.isEdited.col
-      var data = this.isEdited.data
+      var header = this.isEdited.data[1]
+      var data = this.isEdited.data[0]
       this.rows[this.cols.indexOf(header)].rows[this.rows[this.cols.indexOf(header)].rows.indexOf(data)] = newVal.target.value
       this.newStoreChanges("rows")
     },
+    displayIndex(val){
+      console.log(val)
+      this.order = val
+    },
     removePhrase(){
-      var header = this.isEdited.col
-      var data = this.isEdited.data
+      var header = this.isEdited.data[1]
+      var data = this.isEdited.data[0]
       this.rows[this.cols.indexOf(header)].rows[this.rows[this.cols.indexOf(header)].rows.indexOf(data)] = ''
       this.newStoreChanges("rows")
     },
@@ -399,5 +398,20 @@ export default {
 .down {
   transform: rotate(45deg);
   -webkit-transform: rotate(45deg);
+}
+.cross {
+    height: 100px;
+    width: 100px;
+    border-radius: 5px;
+    position: relative;
+}
+.cross:after {
+    position: inline-block;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    content: "\274c"; /* use the hex value here... */
+    color: #FFF;
 }
 </style>
