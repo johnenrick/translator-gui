@@ -38,7 +38,6 @@
               @up="moveUp"
               @down="moveDown"
               @removeK="removeKey"
-              @sendIndex="displayIndex"
             />
           </div>
         </div>
@@ -94,7 +93,6 @@ export default {
       },
       uploader: '',
       keyTableLength: Number,
-      order: Number,
       autosave: false
       
     }
@@ -129,13 +127,8 @@ export default {
     },
     editPhrase(newVal){
       var header = this.isEdited.data[1]
-      var data = this.isEdited.data[0]
-      this.rows[this.cols.indexOf(header)].rows[this.rows[this.cols.indexOf(header)].rows.indexOf(data)] = newVal.target.value
+      this.rows[this.cols.indexOf(header) + 1].rows[newVal[1]] = newVal[0]
       this.newStoreChanges("rows")
-    },
-    displayIndex(val){
-      console.log(val)
-      this.order = val
     },
     sortKeys(){
       var keyCopy = []
@@ -160,6 +153,7 @@ export default {
         tempArr = []
       }
       this.keys.sort()
+      this.newStoreChanges('rows')
     },
     deleteHeader (val){
       var indx = this.cols.indexOf(val)
