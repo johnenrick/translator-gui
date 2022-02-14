@@ -3,6 +3,7 @@
     <div class="row">
       <h1>JSON Translator</h1>
     </div>
+    <button class="btn btn-danger" @click="resetTranslator">Reset</button>
     <div class="row mb-4">
       <div class="col">
         <div class="row mb-2 p-4">
@@ -18,20 +19,25 @@
     </div>
     <div class="grid-container">
       <div v-for="row in rows" v-bind:key="row">
-        <headers :header="row.header" @exportValues="exportRows" @importValues="importing"/>
+        <headers
+          :header="row.header"
+          @exportValues="exportRows"
+          @importValues="importing"
+          @deleteHeader="deleteHeader"
+          @alphabetical="sortKeys"
+        />
         <div class="row mt-4"><span class="header-border"></span></div>
         <div class="row mt-3">
-          <div v-for="data in row.rows" v-bind:key="data">
+          <div v-for="(data,index) in row.rows" v-bind:key="data">
             <tableData
               :val="data"
-               :header="row.header"
-              :rowNum="row.rows.indexOf(data)"
+              :header="row.header"
+              :rowNum="index"
               @edit="editPhrase"
               @setEdit="setEditPhrase"
               @up="moveUp"
               @down="moveDown"
               @removeK="removeKey"
-              @removeP="removePhrase"
               @sendIndex="displayIndex"
             />
           </div>
@@ -109,6 +115,18 @@ export default {
     document.addEventListener("visibilitychange", this.handleVisibilityChange, false);
   },
   methods: {
+    resetTranslator(){
+      if(this.rows.length > 1){
+        this.keys = []
+        this.cols = []
+        do{
+          this.rows.pop()
+        }while(this.rows.length != 1)
+        this.rows[0].rows = []
+        this.newStoreChanges('rows')
+        this.newStoreChanges('cols')
+      }
+    },
     editPhrase(newVal){
       var header = this.isEdited.data[1]
       var data = this.isEdited.data[0]
@@ -119,11 +137,37 @@ export default {
       console.log(val)
       this.order = val
     },
-    removePhrase(){
-      var header = this.isEdited.data[1]
-      var data = this.isEdited.data[0]
-      this.rows[this.cols.indexOf(header)].rows[this.rows[this.cols.indexOf(header)].rows.indexOf(data)] = ''
-      this.newStoreChanges("rows")
+    sortKeys(){
+      var keyCopy = []
+      var dir = []
+      var tempArr = []
+      this.keys.forEach(el => [
+        keyCopy.push(el)
+      ])
+      keyCopy.sort()
+      this.keys.forEach(el => [
+        dir.push(keyCopy.indexOf(el))
+      ])
+      console.log(dir)
+      for(let el in this.rows){
+        this.rows[el].rows.forEach(elem => [
+          tempArr.push(elem)
+        ])
+        this.rows[el].rows = []
+        this.keys.forEach(elems => [
+          this.rows[el].rows.push(tempArr[dir.indexOf(this.keys.indexOf(elems))])
+        ])
+        tempArr = []
+      }
+      this.keys.sort()
+    },
+    deleteHeader (val){
+      var indx = this.cols.indexOf(val)
+      if(indx > -1){
+        this.rows.splice(indx,1)
+        this.cols.splice(indx,1)
+      }
+      this.newStoreChanges('rows')
     },
     setEditPhrase(data,header){
       this.isEdited.col = header
@@ -142,13 +186,18 @@ export default {
       }
     },
     newAddLanguage (){
-      if(this.langName.length > 0){
-        var x = this.langName.charAt(0).toUpperCase() + this.langName.slice(1);
-        this.cols.push(x)
-        var header = x
-        this.initLangRows(header)
-        this.langName = ""
-        this.newStoreChanges("cols")
+      this.langName = this.langName.charAt(0).toUpperCase() + this.langName.slice(1)
+      if(this.cols.indexOf(this.langName) == -1){
+        if(this.langName.length > 0){
+          this.cols.push(this.langName)
+          var header = this.langName
+          this.initLangRows(header)
+          this.langName = ""
+          this.newStoreChanges("cols")
+        }
+      }else{
+        this.langName = ''
+        console.log("language already exists")
       }
     },
     newAddPhrase(){
@@ -166,6 +215,7 @@ export default {
           this.newStoreChanges("rows")
         }
       }else{
+        this.phrase = ''
         console.log("phrase already exists")
       }
     },

@@ -4,11 +4,12 @@
             <div class="input-group-prepend" v-show="header == 'Keys'">
                 <span class="input-group-text">{{rowNum + 1}}</span>
             </div>
-            <input style="min-height: 40px" class="form-control border-0" @keydown.enter="$emit('edit',$event);isHidden = true" @keydown.esc="$emit('setEdit',['','']);isHidden = true"  @click="$emit('setEdit',[val,header,rowNum])" :value="val" type="text"/>
-            <button style="height: 40px; width: 40px" class="btn btn-outline-secondary" v-show="header == 'Keys'" @click="$emit('up',val);isHidden = true"><span class="arrow up"/></button>
-            <button style="height: 40px; width: 40px" class="btn btn-outline-secondary" v-show="header == 'Keys'" @click="$emit('down',val);isHidden = true"><span class="arrow down"/></button>
-            <button class="btn btn-outline-danger" v-show="header == 'Keys'" @click="$emit('removeK',val)">Delete</button>
-            <button style="height: 40px" class="btn btn-danger" :hidden="isHidden" @click="$emit('removeP');isHidden = true">Delete</button>
+            <textarea rows="1" style="min-height: 40px" class="form-control border-0" @change="$emit('edit',$event)" @keydown.enter="$emit('edit',$event);isHidden = true" @keydown.esc="$emit('setEdit',['','']);isHidden = true"  @click="$emit('setEdit',[val,header,rowNum])" :value="val" type="text"/>
+            <div class="align-middle">
+                <button style="height: 40px; width: 40px" class="btn btn-outline-secondary" v-show="header == 'Keys'" @click="$emit('up',val);isHidden = true"><span class="arrow up"/></button>
+                <button style="height: 40px; width: 40px" class="btn btn-outline-secondary" v-show="header == 'Keys'" @click="$emit('down',val);isHidden = true"><span class="arrow down"/></button>
+                <button class="btn btn-outline-danger" v-show="header == 'Keys'" @click="$emit('removeK',val)">Delete</button>
+            </div>
         </div>        
     </div>
 </template>
