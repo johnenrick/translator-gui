@@ -145,10 +145,15 @@ export default {
       this.newStoreChanges('rows')
     },
     deleteHeader (val){
+      console.log(val)
       var indx = this.cols.indexOf(val)
-      this.rows.splice(indx,1)
-      this.cols.splice(indx,1)
-      this.newStoreChanges('rows')
+      if(indx > -1){
+        this.rows.splice(indx + 1,1)
+        this.cols.splice(indx,1)
+        this.newStoreChanges('cols')
+        this.newStoreChanges('rows')
+      }
+      console.log(this.cols)
     },
     setEditPhrase(data,header){
       this.isEdited.col = header
