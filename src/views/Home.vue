@@ -114,16 +114,16 @@ export default {
   },
   methods: {
     resetTranslator(){
+      this.keys = []
+      this.cols = []
       if(this.rows.length > 1){
-        this.keys = []
-        this.cols = []
         do{
           this.rows.pop()
         }while(this.rows.length != 1)
         this.rows[0].rows = []
+      }
         this.newStoreChanges('rows')
         this.newStoreChanges('cols')
-      }
     },
     editPhrase(newVal){
       var header = this.isEdited.data[1]
@@ -132,35 +132,22 @@ export default {
     },
     sortKeys(){
       var keyCopy = []
-      var dir = []
-      var tempArr = []
       this.keys.forEach(el => [
         keyCopy.push(el)
       ])
       keyCopy.sort()
-      this.keys.forEach(el => [
-        dir.push(keyCopy.indexOf(el))
-      ])
-      console.log(dir)
-      for(let el in this.rows){
-        this.rows[el].rows.forEach(elem => [
-          tempArr.push(elem)
-        ])
-        this.rows[el].rows = []
-        this.keys.forEach(elems => [
-          this.rows[el].rows.push(tempArr[dir.indexOf(this.keys.indexOf(elems))])
-        ])
-        tempArr = []
-      }
+      keyCopy.forEach(elem =>{
+        while(this.keys.indexOf(elem) != keyCopy.indexOf(elem)){
+          this.moveUp(this.keys[this.keys.indexOf(elem)])
+        }
+      })
       this.keys.sort()
       this.newStoreChanges('rows')
     },
     deleteHeader (val){
       var indx = this.cols.indexOf(val)
-      if(indx > -1){
-        this.rows.splice(indx,1)
-        this.cols.splice(indx,1)
-      }
+      this.rows.splice(indx,1)
+      this.cols.splice(indx,1)
       this.newStoreChanges('rows')
     },
     setEditPhrase(data,header){
@@ -191,6 +178,7 @@ export default {
         }
       }else{
         this.langName = ''
+        console.log(this.cols)
         console.log("language already exists")
       }
     },
