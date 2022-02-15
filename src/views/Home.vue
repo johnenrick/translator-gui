@@ -89,7 +89,8 @@ export default {
       file: '',
       isEdited: {
         col: String,
-        data: String
+        data: String,
+        index: Number
       },
       uploader: '',
       keyTableLength: Number,
@@ -126,8 +127,10 @@ export default {
         this.newStoreChanges('cols')
     },
     editPhrase(newVal){
+      console.log(newVal.target.value)
       var header = this.isEdited.data[1]
-      this.rows[this.cols.indexOf(header) + 1].rows[newVal[1]] = newVal[0]
+      var num = this.isEdited.data[2]
+      this.rows[this.cols.indexOf(header) + 1].rows[num] = newVal.target.value
       this.newStoreChanges("rows")
     },
     sortKeys(){
@@ -155,9 +158,10 @@ export default {
       }
       console.log(this.cols)
     },
-    setEditPhrase(data,header){
+    setEditPhrase(data,header,row){
       this.isEdited.col = header
       this.isEdited.data = data
+      this.isEdited.index = row
     },
     handleVisibilityChange(){
       if(document.visibilityState == 'hidden'){
