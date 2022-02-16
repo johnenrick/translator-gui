@@ -3,6 +3,9 @@
     <div class="row">
       <h1>JSON Translator</h1>
     </div>
+    <div :hidden="isNotifying" class="alert " :class="notifClass" role="alert">
+      {{alertMessage}}
+    </div>
     <button class="btn btn-danger" @click="resetTranslator">Reset</button>
     <div class="row">
       <div class="col">
@@ -94,7 +97,15 @@ export default {
       },
       uploader: '',
       keyTableLength: Number,
-      autosave: false
+      autosave: false,
+      isNotifying: true,
+      alertMessage: String,
+      notifClass: String,
+      notifType: {
+        success: 'alert-success',
+        fail: 'alert-danger',
+        info: 'alert-info'
+      }
       
     }
   },
@@ -145,10 +156,12 @@ export default {
       for(let col in this.rows){
         var tempArr = []
         for(let row in this.rows[col].rows){
-          if(this.rows[col].rows[dir[row]]){
-            tempArr.push(this.rows[col].rows[dir[row]])
-          }else{
+          if(this.rows[col].rows[dir[row]] == null){
             tempArr.push('')
+          }else if(this.rows[col].rows[dir[row]] == ''){
+            tempArr.push('')
+          }else{
+            tempArr.push(this.rows[col].rows[dir[row]])
           }
         }
         this.rows[col].rows = tempArr
@@ -214,9 +227,25 @@ export default {
           this.newStoreChanges("rows")
         }
       }else{
-        this.phrase = ''
+        this.notify('info')
         console.log("phrase already exists")
       }
+    },
+    notify(type){
+      var indx = this.keys.indexOf(this.phrase)
+      indx = indx + 1
+      this.isNotifying = false
+      this.notifClass = this.notifType[type]
+      this.alertMessage = this.phrase + " already exists! It can be found at line " + indx
+      this.phrase = ''
+      setTimeout( () => {
+        this.clearNotif()
+      },3000)
+    },
+    clearNotif(){
+      this.isNotifying = false
+      this.notifClass = ''
+      this.alertMessage = ''
     },
     importing (uploader){
       document.getElementById(uploader).click()
@@ -315,6 +344,7 @@ export default {
     removeKey (key){
       var indx = this.keys.indexOf(key)
       if(indx > -1){
+        this.keys.splice(indx,1)
         for(let el in this.rows){
           this.rows[el].rows.splice(indx,1) 
         }
