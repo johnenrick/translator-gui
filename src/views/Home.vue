@@ -28,7 +28,7 @@
         />
         <div class="row mt-4"><span class="header-border"></span></div>
         <div class="row mt-3">
-          <div v-for="(data,index) in row.rows" v-bind:key="data">
+          <div v-for="(data,index) in row.rows" v-bind:key="data + index">
             <tableData
               :val="data"
               :header="row.header"
@@ -135,16 +135,32 @@ export default {
     },
     sortKeys(){
       var keyCopy = []
+      var dir = []
       this.keys.forEach(el => [
         keyCopy.push(el)
       ])
-      keyCopy.sort()
-      keyCopy.forEach(elem =>{
-        while(this.keys.indexOf(elem) != keyCopy.indexOf(elem)){
-          this.moveUp(this.keys[this.keys.indexOf(elem)])
-        }
+      keyCopy.sort( (a,b) => {
+        let x = a.toUpperCase(),
+        y = b.toUpperCase()
+        return x == y ? 0 : x > y ? 1 : -1
       })
-      this.keys.sort()
+      keyCopy.forEach(el=>{
+        dir.push(this.keys.indexOf(el))
+      })
+      for(let col in this.rows){
+        var tempArr = []
+        var ctr = 0
+        for(let row in this.rows[col].rows){
+          tempArr[row] = this.rows[col].rows[dir[ctr]]
+          ctr++
+        }
+        this.rows[col].rows = tempArr
+      }
+      this.keys.sort( (a,b) => {
+        let x = a.toUpperCase(),
+        y = b.toUpperCase()
+        return x == y ? 0 : x > y ? 1 : -1
+      })
       this.newStoreChanges('rows')
     },
     deleteHeader (val){
