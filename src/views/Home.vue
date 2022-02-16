@@ -28,7 +28,7 @@
         />
         <div class="row mt-4"><span class="header-border"></span></div>
         <div class="row mt-3">
-          <div v-for="(data,index) in row.rows" v-bind:key="data + index">
+          <div v-for="(data,index) in row.rows" v-bind:key="'data ' + data + index">
             <tableData
               :val="data"
               :header="row.header"
