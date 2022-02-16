@@ -123,14 +123,12 @@ export default {
       this.newStoreChanges('cols')
     },
     editPhrase(newVal){
-      console.log(newVal.target.value)
       var header = this.isEdited.data[1]
       var num = this.isEdited.data[2]
       this.rows[this.cols.indexOf(header) + 1].rows[num] = newVal.target.value
       this.newStoreChanges("rows")
     },
     sortKeys(){
-      console.log(this.keys)
       var keyCopy = []
       var dir = []
       this.keys.forEach(el => [
@@ -146,12 +144,11 @@ export default {
       })
       for(let col in this.rows){
         var tempArr = []
-        console.log(this.rows[col].rows.length)
         for(let row in this.rows[col].rows){
-          if(this.rows[col].rows[dir[row]] != null || this.rows[col].rows[dir[row]] != ''){
-            tempArr[row] = this.rows[col].rows[dir[row]]
-          } else{
-            tempArr[row] = ''
+          if(this.rows[col].rows[dir[row]]){
+            tempArr.push(this.rows[col].rows[dir[row]])
+          }else{
+            tempArr.push('')
           }
         }
         this.rows[col].rows = tempArr
@@ -199,7 +196,6 @@ export default {
         }
       }else{
         this.langName = ''
-        console.log(this.cols)
         console.log("language already exists")
       }
     },
