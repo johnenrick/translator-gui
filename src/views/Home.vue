@@ -4,7 +4,7 @@
       <h1>JSON Translator</h1>
     </div>
     <button class="btn btn-danger" @click="resetTranslator">Reset</button>
-    <div class="row mb-4">
+    <div class="row">
       <div class="col">
         <div class="row mb-2 p-4">
           <div class="col-4">
@@ -14,11 +14,11 @@
             <input class="form-control" @keydown.enter="newAddLanguage" v-model="langName">
           </div>
         </div>
-        <div class="row mt-4"><span class="header-border"></span></div>
       </div>
     </div>
     <div class="grid-container">
       <div v-for="row in rows" v-bind:key="row">
+        <div class="row"><span class="header-border mb-4"></span></div>
         <headers
           :header="row.header"
           @exportValues="exportRows"
@@ -26,7 +26,7 @@
           @deleteHeader="deleteHeader"
           @alphabetical="sortKeys"
         />
-        <div class="row mt-4"><span class="header-border"></span></div>
+        <div class="row mt-3"><span class="header-border"></span></div>
         <div class="row mt-3">
           <div v-for="(data,index) in row.rows" v-bind:key="'data ' + data + index">
             <tableData
@@ -116,15 +116,11 @@ export default {
   methods: {
     resetTranslator(){
       this.keys = []
-      this.cols = []
-      if(this.rows.length > 1){
-        do{
-          this.rows.pop()
-        }while(this.rows.length != 1)
-        this.rows[0].rows = []
-      }
-        this.newStoreChanges('rows')
-        this.newStoreChanges('cols')
+      this.cols = ['Keys']
+      this.rows = []
+      this.rows.push({'header': 'Keys', 'rows': []})
+      this.newStoreChanges('rows')
+      this.newStoreChanges('cols')
     },
     editPhrase(newVal){
       console.log(newVal.target.value)
@@ -134,6 +130,7 @@ export default {
       this.newStoreChanges("rows")
     },
     sortKeys(){
+      console.log(this.keys)
       var keyCopy = []
       var dir = []
       this.keys.forEach(el => [
@@ -149,10 +146,13 @@ export default {
       })
       for(let col in this.rows){
         var tempArr = []
-        var ctr = 0
+        console.log(this.rows[col].rows.length)
         for(let row in this.rows[col].rows){
-          tempArr[row] = this.rows[col].rows[dir[ctr]]
-          ctr++
+          if(this.rows[col].rows[dir[row]] != null || this.rows[col].rows[dir[row]] != ''){
+            tempArr[row] = this.rows[col].rows[dir[row]]
+          } else{
+            tempArr[row] = ''
+          }
         }
         this.rows[col].rows = tempArr
       }
@@ -164,15 +164,11 @@ export default {
       this.newStoreChanges('rows')
     },
     deleteHeader (val){
-      console.log(val)
       var indx = this.cols.indexOf(val)
-      if(indx > -1){
-        this.rows.splice(indx + 1,1)
-        this.cols.splice(indx,1)
-        this.newStoreChanges('cols')
-        this.newStoreChanges('rows')
-      }
-      console.log(this.cols)
+      this.rows.splice(indx,1)
+      this.cols.splice(indx,1)
+      this.newStoreChanges('cols')
+      this.newStoreChanges('rows')
     },
     setEditPhrase(data,header,row){
       this.isEdited.col = header
