@@ -41,6 +41,7 @@
               @up="moveUp"
               @down="moveDown"
               @removeK="removeKey"
+              @dupe="duplicateRow"
             />
           </div>
         </div>
@@ -136,8 +137,19 @@ export default {
     editPhrase(newVal){
       var header = this.isEdited.data[1]
       var num = this.isEdited.data[2]
-      this.rows[this.cols.indexOf(header) + 1].rows[num] = newVal.target.value
+      if(newVal.target.value == ''){
+        this.rows[this.cols.indexOf(header)].rows[num] = null  
+      }else{
+      this.rows[this.cols.indexOf(header)].rows[num] = newVal.target.value
+      }
       this.newStoreChanges("rows")
+    },
+    duplicateRow(indx){
+      this.rows.forEach(el => {
+        el.rows.splice(indx,0,el.rows[indx])
+      })
+      this.keys.splice(indx,0,this.keys[indx])
+      this.newStoreChanges('rows')
     },
     sortKeys(){
       var keyCopy = []
@@ -157,9 +169,9 @@ export default {
         var tempArr = []
         for(let row in this.rows[col].rows){
           if(this.rows[col].rows[dir[row]] == null){
-            tempArr.push('')
+            tempArr.push(null)
           }else if(this.rows[col].rows[dir[row]] == ''){
-            tempArr.push('')
+            tempArr.push(null)
           }else{
             tempArr.push(this.rows[col].rows[dir[row]])
           }
@@ -219,7 +231,7 @@ export default {
             if(x == 0){
               this.rows[x].rows.push(this.phrase)    
             }else{
-              this.rows[x].rows.push('')
+              this.rows[x].rows.push(null)
             }  
           }
           this.keys.push(this.phrase)
@@ -299,55 +311,35 @@ export default {
         rows: []
       }
       for(let el in arr){
-        obj.rows[el] = ''
+        obj.rows[el] = null
       }
       obj.header = lang
       this.rows.push(obj)
       this.newStoreChanges()
     },
-    moveUp (key) {
-      var temp, indx, val
-      indx = this.keys.indexOf(key)
-      if(indx > 0){
-        temp = this.keys[indx - 1]
-        this.keys[indx] = temp
-        this.keys[indx - 1] = key
-      }
-      for(let el in this.rows){
-        if(indx > 0){
-          val = this.rows[el].rows[indx]
-          temp = this.rows[el].rows[indx - 1]
-          this.rows[el].rows[indx - 1] = val
-          this.rows[el].rows[indx] = temp
-        }
+    moveUp (indx) {
+      if(indx >= 1){
+      var newIndex = indx - 1
+      this.rows.forEach(el => {
+        el.rows.splice(newIndex,2,el.rows[indx],el.rows[newIndex])
+      })
+      this.keys.splice(newIndex,2,this.keys[indx],this.keys[newIndex])
       }
       this.newStoreChanges('rows')
     },
-    moveDown (key) {
-      var temp, indx, val
-      indx = this.keys.indexOf(key)
-      if(indx < this.keys.length - 1){
-        temp = this.keys[indx + 1]
-        this.keys[indx] = temp
-        this.keys[indx + 1] = key
-      }
-      for(let el in this.rows){
-        if(indx < this.rows[el].rows.length - 1){
-          val = this.rows[el].rows[indx]
-          temp = this.rows[el].rows[indx + 1]
-          this.rows[el].rows[indx + 1] = val
-          this.rows[el].rows[indx] = temp
-        }
+    moveDown (indx) {
+      if(this.keys.length - 1 > indx){
+      this.rows.forEach(el => {
+        el.rows.splice(indx,2,el.rows[indx + 1],el.rows[indx])
+      })
+      this.keys.splice(indx,2,this.keys[indx + 1],this.keys[indx])
       }
       this.newStoreChanges('rows')
     },
-    removeKey (key){
-      var indx = this.keys.indexOf(key)
-      if(indx > -1){
-        this.keys.splice(indx,1)
-        for(let el in this.rows){
-          this.rows[el].rows.splice(indx,1) 
-        }
+    removeKey (indx){
+      this.keys.splice(indx,1)
+      for(let el in this.rows){
+        this.rows[el].rows.splice(indx,1) 
       }
       this.newStoreChanges('rows')
     },
@@ -399,7 +391,7 @@ export default {
         if(this.rows[x].rows.length < this.keyTableLength){
           let ctr = this.keyTableLength - this.rows[x].rows.length
           for(; ctr > 0; ctr--){
-            this.rows[x].rows.push('')
+            this.rows[x].rows.push(null)
           }
         }
       }
