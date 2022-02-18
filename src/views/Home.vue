@@ -19,43 +19,39 @@
         </div>
       </div>
     </div>
-    <div class="grid-container">
-      <div v-for="row in rows" v-bind:key="row">
-        <div class="row"><span class="header-border mb-4"></span></div>
-        <headers
-          :header="row.header"
-          @exportValues="exportRows"
-          @importValues="importing"
-          @deleteHeader="deleteHeader"
-          @alphabetical="sortKeys"
-        />
-        <div class="row mt-3"><span class="header-border"></span></div>
-        <div class="row mt-3">
-          <div v-for="(data,index) in row.rows" v-bind:key="'data ' + data + index">
-            <tableData
-              :val="data"
-              :header="row.header"
-              :rowNum="index"
-              @edit="editPhrase"
-              @setEdit="setEditPhrase"
-              @up="moveUp"
-              @down="moveDown"
-              @removeK="removeKey"
-              @dupe="duplicateRow"
-            />
+    <div class="container">
+      <div class="row flex-nowrap">
+        <div class="col-6 border-top border-bottom border-dark" v-for="row in rows" v-bind:key="row">
+          <headers
+            class="col border-bottom border-dark"
+            :header="row.header"
+            @exportValues="exportRows"
+            @importValues="importing"
+            @deleteHeader="deleteHeader"
+            @alphabetical="sortKeys"
+          />
+            <div v-for="(data,index) in row.rows" v-bind:key="'data ' + data + index">
+              <tableData
+                class="col mt-3"
+                :val="data"
+                :header="row.header"
+                :rowNum="index"
+                @edit="editPhrase"
+                @setEdit="setEditPhrase"
+                @up="moveUp"
+                @down="moveDown"
+                @removeK="removeKey"
+                @dupe="duplicateRow"
+              />
+            </div>
+          <input v-show="row.header != 'Keys'" type="file" hidden @change="importJSON" :id="row.header" ref="myFiles" accept=".json">
+          <div class="btn-group mt-4 mb-4">
+            <button class="btn btn-outline-secondary" @click="importing(row.header)" v-show="row.header != 'Keys'">import</button>
+            <button class="btn btn-outline-secondary" v-show="row.header != 'Keys'" @click="exportRows(row.header)">Export</button>
           </div>
-        </div>
-        <input v-show="row.header != 'Keys'" type="file" hidden @change="importJSON" :id="row.header" ref="myFiles" accept=".json">
-        <div class="btn-group mt-4">
-          <button class="btn btn-outline-secondary" @click="importing(row.header)" v-show="row.header != 'Keys'">import</button>
-          <button class="btn btn-outline-secondary" v-show="row.header != 'Keys'" @click="exportRows(row.header)">Export</button>
         </div>
       </div>
     </div>
-    <div>
-      <span class="header-border"></span>
-    </div>
-    <div class="row mt-4"><span class="header-border"></span></div>
     <div class="row mt-4 p-4">
       <div class="col-4">
         <button class="btn btn-outline-primary" @click="newAddPhrase">Add Phrase</button>
@@ -154,6 +150,7 @@ export default {
     sortKeys(){
       var keyCopy = []
       var dir = []
+      var tempArr = []
       this.keys.forEach(el => [
         keyCopy.push(el)
       ])
@@ -166,17 +163,16 @@ export default {
         dir.push(this.keys.indexOf(el))
       })
       for(let col in this.rows){
-        var tempArr = []
+        tempArr = Array(dir.length - 1).fill(null)
         for(let row in this.rows[col].rows){
-          if(this.rows[col].rows[dir[row]] == null){
-            tempArr.push(null)
-          }else if(this.rows[col].rows[dir[row]] == ''){
-            tempArr.push(null)
+          if(this.rows[col].rows[dir[row]]){
+            tempArr[row] = this.rows[col].rows[dir[row]]
           }else{
-            tempArr.push(this.rows[col].rows[dir[row]])
+            tempArr[row] = null
           }
         }
         this.rows[col].rows = tempArr
+        tempArr = []
       }
       this.keys.sort( (a,b) => {
         let x = a.toUpperCase(),
@@ -221,7 +217,6 @@ export default {
         }
       }else{
         this.langName = ''
-        console.log("language already exists")
       }
     },
     newAddPhrase(){
@@ -240,7 +235,6 @@ export default {
         }
       }else{
         this.notify('info')
-        console.log("phrase already exists")
       }
     },
     notify(type){
@@ -305,15 +299,15 @@ export default {
       localStorage.setItem(type, toStore)
     },
     initLangRows(lang){
-      var arr = this.keys
+      var newRows = []
       var obj = {
-        header: '',
+        header: lang,
         rows: []
       }
-      for(let el in arr){
-        obj.rows[el] = null
+      if(this.keys.length > 0){
+        newRows = Array(this.keys.length - 1).fill(null)
       }
-      obj.header = lang
+      obj.rows = newRows
       this.rows.push(obj)
       this.newStoreChanges()
     },
