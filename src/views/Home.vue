@@ -20,8 +20,8 @@
       </div>
     </div>
     <div class="container">
-      <div class="row flex-nowrap justify-content-center">
-        <div class="col-6 border-top border-bottom border-dark" v-for="row in rows" v-bind:key="row">
+      <div class="row flex-nowrap align-self-center">
+        <div style="min-width: 650px" class="col border-top border-bottom border-dark" v-for="row in rows" v-bind:key="row">
           <headers
             class="col border-bottom border-dark"
             :header="row.header"

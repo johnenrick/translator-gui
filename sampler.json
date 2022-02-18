@@ -3,6 +3,8 @@
     "edit": "edit",
     "delete": "delete",
     "remove": "remove",
-    "undo": "undo"
-
+    "undo": "undo",
+    "eat": "eat",
+    "drink": "drink",
+    "cook": "cook"
 }
