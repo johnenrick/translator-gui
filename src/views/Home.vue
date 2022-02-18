@@ -148,6 +148,7 @@ export default {
       this.newStoreChanges('rows')
     },
     sortKeys(){
+      var len = this.keyTableLength - 1
       var keyCopy = []
       var dir = []
       var tempArr = []
@@ -162,13 +163,16 @@ export default {
       keyCopy.forEach(el=>{
         dir.push(this.keys.indexOf(el))
       })
+      console.log(dir)
       for(let col in this.rows){
-        tempArr = Array(dir.length - 1).fill(null)
-        for(let row in this.rows[col].rows){
-          if(this.rows[col].rows[dir[row]]){
-            tempArr[row] = this.rows[col].rows[dir[row]]
+        console.log(this.rows[col].header + '``````````')
+        console.log(this.rows[col])
+        for(let ctr = 0; ctr <= len; ctr ++){
+          console.log(this.rows[col].rows[dir[ctr]])
+          if(this.rows[col].rows[dir[ctr]]){
+            tempArr[ctr] = this.rows[col].rows[dir[ctr]]
           }else{
-            tempArr[row] = null
+            tempArr[ctr] = null
           }
         }
         this.rows[col].rows = tempArr
@@ -305,7 +309,7 @@ export default {
         rows: []
       }
       if(this.keys.length > 0){
-        newRows = Array(this.keys.length - 1).fill(null)
+        newRows = Array(this.keys.length).fill(null)
       }
       obj.rows = newRows
       this.rows.push(obj)
@@ -364,7 +368,7 @@ export default {
               toPush.rows[this.keys.indexOf(f)] = file[f]
             }
             if(this.keys.length > toPush.rows.length){
-              toPush.rows[this.keys.length - 1] = ''
+              toPush.rows[this.keys.length - 1] = null
             }
           }
         }
