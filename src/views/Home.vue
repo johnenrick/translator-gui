@@ -128,7 +128,11 @@ export default {
       var header = this.isEdited.data[1]
       var num = this.isEdited.data[2]
       if(newVal.target.value == ''){
-        this.rows[this.cols.indexOf(header)].rows[num] = null  
+        if(header == "Keys"){
+          this.removeKey(num)
+        }else{
+          this.rows[this.cols.indexOf(header)].rows[num] = null  
+        }
       }else{
       this.rows[this.cols.indexOf(header)].rows[num] = newVal.target.value
       }
@@ -146,9 +150,11 @@ export default {
       var keyCopy = []
       var dir = []
       var tempArr = []
-      this.keys.forEach(el => [
-        keyCopy.push(el)
-      ])
+      this.keys.forEach(el => {
+        if(el != '' || el != null){
+          keyCopy.push(el)
+        }
+      })
       keyCopy.sort( (a,b) => {
         let x = a.toUpperCase(),
         y = b.toUpperCase()
