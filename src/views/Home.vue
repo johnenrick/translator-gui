@@ -3,23 +3,11 @@
     <div class="row">
       <h1>JSON Translator</h1>
     </div>
-    <div :hidden="isNotifying" class="alert " :class="notifClass" role="alert">
-      {{alertMessage}}
-    </div>
     <button class="btn btn-danger" @click="resetTranslator">Reset</button>
-    <div class="row">
-      <div class="col">
-        <div class="row mb-2 p-4">
-          <div class="col-4">
-            <button class="btn btn-outline-primary" @click="newAddLanguage">Add language</button>
-          </div>
-          <div class="col-8">
-            <input class="form-control" @keydown.enter="newAddLanguage" v-model="langName">
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="container">
+    <addLanguage
+      @addLang="newAddLanguage"
+    />
+    <div class="container testimonial-group">
       <div class="row flex-nowrap align-self-center">
         <div style="min-width: 650px" class="col border-top border-bottom border-dark" v-for="row in rows" v-bind:key="row">
           <headers
@@ -52,14 +40,16 @@
         </div>
       </div>
     </div>
-    <div class="row mt-4 p-4">
-      <div class="col-4">
-        <button class="btn btn-outline-primary" @click="newAddPhrase">Add Phrase</button>
+    <div class="row mt-4">
+      <div class="col">
+        <div :hidden="isNotifying" class="alert " :class="notifClass" role="alert">
+          {{alertMessage}}
+        </div>
       </div>
-      <div class="col-8">
-        <input class="form-control" v-model="phrase">
-      </div>
-    </div>  
+    </div>
+    <add-phrase
+      @addPhrase="newAddPhrase"
+    />
   </div>
 </template>
 
@@ -67,12 +57,16 @@
 
 import headers from "../components/Headers.vue"
 import tableData from "../components/TableData.vue"
+import addLanguage from "../components/AddLanguage.vue"
+import addPhrase from "../components/AddPhrase.vue"
 
 export default {
   name: 'Home',
   components: {
     headers,
-    tableData
+    tableData,
+    addLanguage,
+    addPhrase
   },
   data() {
     return {
@@ -163,12 +157,8 @@ export default {
       keyCopy.forEach(el=>{
         dir.push(this.keys.indexOf(el))
       })
-      console.log(dir)
       for(let col in this.rows){
-        console.log(this.rows[col].header + '``````````')
-        console.log(this.rows[col])
         for(let ctr = 0; ctr <= len; ctr ++){
-          console.log(this.rows[col].rows[dir[ctr]])
           if(this.rows[col].rows[dir[ctr]]){
             tempArr[ctr] = this.rows[col].rows[dir[ctr]]
           }else{
@@ -209,8 +199,8 @@ export default {
         }
       }
     },
-    newAddLanguage (){
-      this.langName = this.langName.charAt(0).toUpperCase() + this.langName.slice(1)
+    newAddLanguage (newLang){
+      this.langName = newLang.charAt(0).toUpperCase() + newLang.slice(1)
       if(this.cols.indexOf(this.langName) == -1){
         if(this.langName.length > 0){
           this.cols.push(this.langName)
@@ -223,7 +213,8 @@ export default {
         this.langName = ''
       }
     },
-    newAddPhrase(){
+    newAddPhrase(newAddPhrase){
+      this.phrase = newAddPhrase
       if(this.keys.indexOf(this.phrase) == -1){
         if(this.phrase.length > 0){
           for(let x in this.rows){
@@ -238,6 +229,7 @@ export default {
           this.newStoreChanges("rows")
         }
       }else{
+        this.phrase = ''
         this.notify('info')
       }
     },
@@ -285,7 +277,10 @@ export default {
       this.autosave = true
     },
     newStoreChanges(type){
-      this.autosave = true
+      if(this.autosave == false){
+        this.autosave = true
+        this.handleVisibilityChange()
+      }
       var toStore = []
       if(type == 'cols'){
         this.cols.forEach(element => {
@@ -468,19 +463,12 @@ export default {
   transform: rotate(45deg);
   -webkit-transform: rotate(45deg);
 }
-.cross {
-    height: 100px;
-    width: 100px;
-    border-radius: 5px;
-    position: relative;
+.testimonial-group > .row {
+  overflow-x: auto;
+  white-space: nowrap;
 }
-.cross:after {
-    position: inline-block;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    content: "\274c"; /* use the hex value here... */
-    color: #FFF;
+.testimonial-group > .row > .col {
+  display: inline-block;
+  float: none;
 }
 </style>
