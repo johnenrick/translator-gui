@@ -7,9 +7,9 @@
             <textarea rows="1" style="min-height: 40px" class="form-control border-0" @change="$emit('edit',$event)" @click="$emit('setEdit',[val,header,rowNum]);isHidden = !isHidden" :value="newVal" type="text"/>
             <div class="align-middle">
                 <button style="height: 40px" class="btn btn-outline-secondary" v-show="header == 'Keys'" @click="$emit('dupe',rowNum)"><font-awesome-icon :icon="['fas', 'clone']" /></button>
-                <button style="height: 40px; width: 40px" class="btn btn-outline-secondary" v-show="header == 'Keys'" @click="$emit('up',rowNum)"><span class="arrow up"/></button>
-                <button style="height: 40px; width: 40px" class="btn btn-outline-secondary" v-show="header == 'Keys'" @click="$emit('down',rowNum)"><span class="arrow down"/></button>
-                <button style="height: 40px; width: 40px" class="btn btn-outline-danger" v-show="header == 'Keys'" @click="$emit('removeK',rowNum)"><span class="btn-close"/></button>
+                <button style="height: 40px; width: 40px" class="btn btn-outline-secondary" v-show="header == 'Keys'" @click="$emit('up',rowNum)"><font-awesome-icon :icon="['fas', 'arrow-up']" /></button>
+                <button style="height: 40px; width: 40px" class="btn btn-outline-secondary" v-show="header == 'Keys'" @click="$emit('down',rowNum)"><font-awesome-icon :icon="['fas', 'arrow-down']" /></button>
+                <button style="height: 40px; width: 40px" class="btn btn-outline-danger" v-show="header == 'Keys'" @click="$emit('removeK',rowNum)"><font-awesome-icon :icon="['fas', 'trash-can']" /></button>
             </div>
         </div>
     </div>
