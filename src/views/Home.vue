@@ -144,6 +144,7 @@ export default {
       })
       this.keys.splice(indx,0,this.keys[indx])
       this.newStoreChanges('rows')
+      this.keyTableLength = this.keys.length
     },
     sortKeys(){
       var len = this.keyTableLength - 1
@@ -235,7 +236,6 @@ export default {
           this.newStoreChanges("rows")
         }
       }else{
-        this.phrase = ''
         this.notify('info')
       }
     },
@@ -340,6 +340,7 @@ export default {
       for(let el in this.rows){
         this.rows[el].rows.splice(indx,1) 
       }
+      this.keyTableLength = this.keys.length
       this.newStoreChanges('rows')
     },
     importJSON(event){
