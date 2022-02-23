@@ -5,37 +5,37 @@
     </div>
     <button class="btn btn-danger" @click="resetTranslator">Reset</button>
     <addLanguage
-      @addLang="newAddLanguage"
+      @addLang="newAddLanguageV2"
     />
     <div class="container testimonial-group">
       <div class="row flex-nowrap align-self-center">
-        <div style="min-width: 650px" class="col border-top border-bottom border-dark" v-for="row in rows" v-bind:key="row">
+        <div style="min-width: 650px" class="col border-top border-bottom border-dark" v-for="(colLabel, name) in tableEntries" v-bind:key="name">
           <headers
             class="col border-bottom border-dark"
-            :header="row.header"
+            :header="name"
             @exportValues="exportRows"
             @importValues="importing"
             @deleteHeader="deleteHeader"
             @alphabetical="sortKeys"
           />
-            <div v-for="(data,index) in row.rows" v-bind:key="'data ' + data + index">
+            <div v-for="(data,index) in colLabel" v-bind:key="'data ' + data + index">
               <tableData
                 class="col mt-3"
                 :val="data"
-                :header="row.header"
+                :header="name"
                 :rowNum="index"
                 @edit="editPhrase"
                 @setEdit="setEditPhrase"
-                @up="moveUp"
-                @down="moveDown"
-                @removeK="removeKey"
-                @dupe="duplicateRow"
+                @up="moveUpV2"
+                @down="moveDownV2"
+                @removeK="removeKeyV2"
+                @dupe="duplicateRowV2"
               />
             </div>
-          <input v-show="row.header != 'Keys'" type="file" hidden @change="importJSON" :id="row.header" ref="myFiles" accept=".json">
+          <input v-show="name != 'Keys'" type="file" hidden @change="importJSON" :id="name" ref="myFiles" accept=".json">
           <div class="btn-group mt-4 mb-4">
-            <button class="btn btn-outline-secondary" @click="importing(row.header)" v-show="row.header != 'Keys'">import</button>
-            <button class="btn btn-outline-secondary" v-show="row.header != 'Keys'" @click="exportRows(row.header)">Export</button>
+            <button class="btn btn-outline-secondary" @click="importing(name)" v-show="name != 'Keys'">import</button>
+            <button class="btn btn-outline-secondary" v-show="name != 'Keys'" @click="exportRows(name)">Export</button>
           </div>
         </div>
       </div>
@@ -77,6 +77,9 @@ export default {
         header: 'Keys',
         rows: []
       }],
+      tableEntries:{
+        Keys: Array
+      },
       keys: [],
       timer: Number,
       editKeyButtonText: 'Edit',
@@ -121,6 +124,8 @@ export default {
       this.cols = ['Keys']
       this.rows = []
       this.rows.push({'header': 'Keys', 'rows': []})
+      this.tableEntries = {'Keys': []}
+      this.newStoreChangesV2()
       this.newStoreChanges('rows')
       this.newStoreChanges('cols')
     },
@@ -213,6 +218,21 @@ export default {
           this.cols.push(this.langName)
           var header = this.langName
           this.initLangRows(header)
+          this.langName = ""
+          this.newStoreChanges("cols")
+        }
+      }else{
+        this.langName = ''
+      }
+    },
+    newAddLanguageV2 (newLang){
+      this.langName = newLang.charAt(0).toUpperCase() + newLang.slice(1)
+      if(this.cols.indexOf(this.langName) == -1){
+        if(this.langName.length > 0){
+          this.cols.push(this.langName)
+          var header = this.langName
+          this.initLangRows(header)
+          this.tableEntries[this.langName] = []
           this.langName = ""
           this.newStoreChanges("cols")
         }
@@ -350,7 +370,7 @@ export default {
       fr.onload = function () {
         jsonFile = fr.result
         jsonFile = JSON.parse(jsonFile)
-        this.compareKeys(jsonFile)
+        this.compareKeysV2(jsonFile)
       }.bind(this)
       fr.readAsText(theFile)
     },
@@ -377,6 +397,84 @@ export default {
       }
       this.keyTableLength = this.keys.length
       this.addImported(toPush)
+    },
+    compareKeysV2 (file){
+      var toPush = []
+      for(let f in file){
+        if(this.keys.length > toPush.length){
+          toPush[this.keys.length - 1] = null
+        }
+        if(this.keys.indexOf(f) > -1){
+          toPush[this.keys.indexOf(f)] = file[f]
+        }else{
+          this.keys.push(f)
+          toPush.push(file[f])
+        }
+      }
+      if(this.tableEntries[this.uploader].length == 0){
+        this.tableEntries[this.uploader] = toPush
+      }else{
+        for(let el in this.keys){
+          if(toPush[el] != null && toPush[el] != '' && toPush[el] != undefined){
+            this.tableEntries[this.uploader][el] = toPush[el]
+          }
+        }
+      }
+      this.tableEntries["Keys"] = this.keys
+      this.keyTableLength = this.keys.length
+      this.checkTranslationColLengthV2()
+      this.newStoreChangesV2()
+    },
+    newStoreChangesV2(){
+      if(this.autosave == false){
+        this.autosave = true
+        this.handleVisibilityChange()
+      }
+      var toStore = JSON.stringify(this.tableEntries)
+      localStorage.setItem('tableEntries', toStore)
+    },
+    moveUpV2 (indx) {
+      if(indx >= 1){
+      var newIndex = indx - 1
+      for(let el in this.tableEntries){
+           this.tableEntries[el].splice(newIndex,2,this.tableEntries[el][indx],this.tableEntries[el][newIndex])
+        }
+      this.keys = this.tableEntries["Keys"]
+      }
+      this.newStoreChanges('rows')
+    },
+    moveDownV2 (indx) {
+      if(this.keys.length - 1 > indx){
+        for(let el in this.tableEntries){
+          this.tableEntries[el].splice(indx,2,this.tableEntries[el][indx + 1],this.tableEntries[el][indx])
+        }
+        this.keys = this.tableEntries["Keys"]
+      }
+    },
+    removeKeyV2 (indx){
+      for(let el in this.tableEntries){
+        this.tableEntries[el].splice(indx,1) 
+      }
+      this.keys = this.tableEntries['Keys']
+      this.keyTableLength = this.keys.length
+    },
+    duplicateRowV2(indx){
+      for(let el in this.tableEntries){
+        this.tableEntries[el].splice(indx,0,this.tableEntries[el][indx])
+      }
+      this.keys = this.tableEntries['Keys']
+      this.keyTableLength = this.keys.length
+    },
+    checkTranslationColLengthV2(){
+      for(let el in this.tableEntries){
+        if(this.tableEntries[el].length < this.keyTableLength){
+          let ctr = this.keyTableLength - this.tableEntries[el].length
+          for(; ctr > 0; ctr--){
+            this.tableEntries[el].push(null)
+          }
+        }
+      }
+      this.newStoreChanges()
     },
     addImported (toAdd){
       for(let row in this.rows){
