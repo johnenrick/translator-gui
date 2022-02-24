@@ -13,7 +13,7 @@
           <headers
             class="col border-bottom border-dark"
             :header="name"
-            @exportValues="exportRows"
+            @exportValues="exportRowsV2"
             @importValues="importing"
             @deleteHeader="deleteHeaderV2"
             @alphabetical="sortKeysV2"
@@ -35,7 +35,7 @@
           <input v-show="name != 'Keys'" type="file" hidden @change="importJSON" :id="name" ref="myFiles" accept=".json">
           <div class="btn-group mt-4 mb-4">
             <button class="btn btn-outline-secondary" @click="importing(name)" v-show="name != 'Keys'">import</button>
-            <button class="btn btn-outline-secondary" v-show="name != 'Keys'" @click="exportRows(name)">Export</button>
+            <button class="btn btn-outline-secondary" v-show="name != 'Keys'" @click="exportRowsV2(name)">Export</button>
           </div>
         </div>
       </div>
@@ -119,6 +119,7 @@ export default {
     if(localStorage.getItem("tableEntries")){
       this.tableEntries = localStorage.getItem("tableEntries")
       this.tableEntries = JSON.parse(this.tableEntries)
+      this.keys = this.tableEntries['Keys']
     }
     document.addEventListener("visibilitychange", this.handleVisibilityChange, false);
   },
@@ -439,17 +440,25 @@ export default {
       localStorage.setItem('tableEntries', toStore)
     },
     moveUpV2 (indx) {
+      var temp1,temp2
       if(indx >= 1){
-      for(let el in this.tableEntries){
-           this.tableEntries[el].splice(indx - 1,2,this.tableEntries[el][indx],this.tableEntries[el][indx - 1])
+        for(let el in this.tableEntries){
+          temp1 = this.tableEntries[el][indx]
+          temp2 = this.tableEntries[el][indx - 1]
+          this.tableEntries[el][indx] = temp2
+          this.tableEntries[el][indx - 1] = temp1
         }
-      this.keys = this.tableEntries["Keys"]
+        this.keys = this.tableEntries["Keys"]
       }
     },
     moveDownV2 (indx) {
+      var temp1,temp2
       if(this.keys.length - 1 > indx){
         for(let el in this.tableEntries){
-          this.tableEntries[el].splice(indx,2,this.tableEntries[el][indx + 1],this.tableEntries[el][indx])
+          temp1 = this.tableEntries[el][indx + 1]
+          temp2 = this.tableEntries[el][indx]
+          this.tableEntries[el][indx] = temp1
+          this.tableEntries[el][indx + 1] = temp2
         }
         this.keys = this.tableEntries["Keys"]
       }
@@ -547,6 +556,24 @@ export default {
       }else{
         this.notify('info')
       }
+    },
+    exportRowsV2(header){
+      var tempK, tempV
+      var row = {}
+      for(let el in this.tableEntries[header]){
+        tempK = this.tableEntries['Keys'][el]
+        tempV = this.tableEntries[header][el]
+        Object.assign(row, {[tempK]: tempV})
+      }
+      var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(row, null, '\t'))
+      var downloadAnchorNode = document.createElement('a')
+      downloadAnchorNode.setAttribute("href",     dataStr)
+      downloadAnchorNode.setAttribute("download", header + ".json")
+      document.body.appendChild(downloadAnchorNode)
+      downloadAnchorNode.click()
+      downloadAnchorNode.remove()
+      this.newStoreChangesV2()
+      this.autosave = true
     },
     addImported (toAdd){
       for(let row in this.rows){
