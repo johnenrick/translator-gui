@@ -532,8 +532,6 @@ export default {
     },
     newAddPhraseV2(newAddPhrase){
       this.phrase = newAddPhrase
-      console.log(this.keys)
-      console.log(this.tableEntries)
       if(this.keys.indexOf(this.phrase) == -1){
         if(this.phrase.length > 0){
           for(let el in this.tableEntries){
