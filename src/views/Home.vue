@@ -15,8 +15,8 @@
             :header="name"
             @exportValues="exportRows"
             @importValues="importing"
-            @deleteHeader="deleteHeader"
-            @alphabetical="sortKeys"
+            @deleteHeader="deleteHeaderV2"
+            @alphabetical="sortKeysV2"
           />
             <div v-for="(data,index) in colLabel" v-bind:key="'data ' + data + index">
               <tableData
@@ -24,7 +24,7 @@
                 :val="data"
                 :header="name"
                 :rowNum="index"
-                @edit="editPhrase"
+                @edit="editPhraseV2"
                 @setEdit="setEditPhrase"
                 @up="moveUpV2"
                 @down="moveDownV2"
@@ -48,7 +48,7 @@
       </div>
     </div>
     <add-phrase
-      @addPhrase="newAddPhrase"
+      @addPhrase="newAddPhraseV2"
     />
   </div>
 </template>
@@ -104,17 +104,21 @@ export default {
     }
   },
   mounted() {
-    if(localStorage.getItem("cols")){
-      this.cols = localStorage.getItem("cols")
-      this.cols = JSON.parse(this.cols)
-    }
-    if(localStorage.getItem("rows")){
-      this.rows = localStorage.getItem("rows")
-      this.rows = JSON.parse(this.rows)
-      for(let el in this.rows[0].rows){
-        this.keys[el] = this.rows[0].rows[el]
-      }
-      this.keyTableLength = this.keys.length
+    // if(localStorage.getItem("cols")){
+    //   this.cols = localStorage.getItem("cols")
+    //   this.cols = JSON.parse(this.cols)
+    // }
+    // if(localStorage.getItem("rows")){
+    //   this.rows = localStorage.getItem("rows")
+    //   this.rows = JSON.parse(this.rows)
+    //   for(let el in this.rows[0].rows){
+    //     this.keys[el] = this.rows[0].rows[el]
+    //   }
+    //   this.keyTableLength = this.keys.length
+    // }
+    if(localStorage.getItem("tableEntries")){
+      this.tableEntries = localStorage.getItem("tableEntries")
+      this.tableEntries = JSON.parse(this.tableEntries)
     }
     document.addEventListener("visibilitychange", this.handleVisibilityChange, false);
   },
@@ -126,8 +130,8 @@ export default {
       this.rows.push({'header': 'Keys', 'rows': []})
       this.tableEntries = {'Keys': []}
       this.newStoreChangesV2()
-      this.newStoreChanges('rows')
-      this.newStoreChanges('cols')
+      // this.newStoreChanges('rows')
+      // this.newStoreChanges('cols')
     },
     editPhrase(newVal){
       var header = this.isEdited.data[1]
@@ -205,8 +209,9 @@ export default {
       }else if (document.visibilityState == 'visible'){
         if(this.autosave == true){
           this.timer = setInterval(() => {
-            this.newStoreChanges('rows')
-            this.newStoreChanges('cols')
+            this.newStoreChangesV2()
+            // this.newStoreChanges('rows')
+            // this.newStoreChanges('cols')
           },30000)
         }
       }
@@ -435,13 +440,11 @@ export default {
     },
     moveUpV2 (indx) {
       if(indx >= 1){
-      var newIndex = indx - 1
       for(let el in this.tableEntries){
-           this.tableEntries[el].splice(newIndex,2,this.tableEntries[el][indx],this.tableEntries[el][newIndex])
+           this.tableEntries[el].splice(indx - 1,2,this.tableEntries[el][indx],this.tableEntries[el][indx - 1])
         }
       this.keys = this.tableEntries["Keys"]
       }
-      this.newStoreChanges('rows')
     },
     moveDownV2 (indx) {
       if(this.keys.length - 1 > indx){
@@ -475,6 +478,77 @@ export default {
         }
       }
       this.newStoreChanges()
+    },
+    sortKeysV2(){
+      var len = this.keyTableLength - 1
+      var keyCopy = []
+      var dir = []
+      var tempArr = []
+      this.keys.forEach(el => {
+        if(el != '' && el != null){
+          keyCopy.push(el)
+        }
+      })
+      keyCopy.sort( (a,b) => {
+        let x = a.toUpperCase(),
+        y = b.toUpperCase()
+        return x == y ? 0 : x > y ? 1 : -1
+      })
+      keyCopy.forEach(el=>{
+        dir.push(this.keys.indexOf(el))
+      })
+      for(let el in this.tableEntries){
+        for(let ctr = 0; ctr <= len; ctr++){
+          if(this.tableEntries[el][dir[ctr]]){
+            tempArr[ctr] = this.tableEntries[el][dir[ctr]]
+          }else{
+            tempArr[ctr] = null
+          }
+        }
+        this.tableEntries[el] = tempArr
+        tempArr = []
+      }
+      this.keys = this.tableEntries['Keys']
+    },
+    editPhraseV2(newVal){
+      var header = this.isEdited.data[1]
+      var num = this.isEdited.data[2]
+      if(newVal.target.value == ''){
+        if(header == "Keys"){
+          this.removeKey(num)
+        }else{
+          this.tableEntries[header][num] = null  
+        }
+      }else{
+      this.tableEntries[header][num] = newVal.target.value
+      }
+      this.newStoreChangesV2()
+    },
+    deleteHeaderV2 (val){
+      var indx = this.cols.indexOf(val)
+      delete this.tableEntries[val]
+      this.cols.splice(indx,1)
+      this.newStoreChangesV2()
+    },
+    newAddPhraseV2(newAddPhrase){
+      this.phrase = newAddPhrase
+      console.log(this.keys)
+      console.log(this.tableEntries)
+      if(this.keys.indexOf(this.phrase) == -1){
+        if(this.phrase.length > 0){
+          for(let el in this.tableEntries){
+            if(el == 'Keys'){
+              this.tableEntries[el].push(this.phrase)
+            }else{
+              this.tableEntries[el].push(null)
+            }
+          }
+          this.phrase = ''
+          this.newStoreChangesV2()
+        }
+      }else{
+        this.notify('info')
+      }
     },
     addImported (toAdd){
       for(let row in this.rows){
