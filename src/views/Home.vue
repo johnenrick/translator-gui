@@ -5,37 +5,37 @@
     </div>
     <button class="btn btn-danger" @click="resetTranslator">Reset</button>
     <addLanguage
-      @addLang="newAddLanguageV2"
+      @addLang="newAddLanguageV3"
     />
     <div class="container testimonial-group">
       <div class="row flex-nowrap align-self-center">
-        <div style="min-width: 650px" class="col border-top border-bottom border-dark" v-for="(colLabel, name) in tableEntries" v-bind:key="name">
+        <div style="min-width: 650px" class="col border-top border-bottom border-dark" v-for="(colLabel,name) in cols" v-bind:key="name">
           <headers
             class="col border-bottom border-dark"
-            :header="name"
-            @exportValues="exportRowsV2"
+            :header="colLabel"
+            @exportValues="exportRowsV3"
             @importValues="importing"
-            @deleteHeader="deleteHeaderV2"
-            @alphabetical="sortKeysV2"
+            @deleteHeader="deleteHeaderV3"
+            @alphabetical="sortKeysV3"
           />
-            <div v-for="(data,index) in colLabel" v-bind:key="'data ' + data + index">
+            <div v-for="(data,index) in tableEntriesV2" v-bind:key="'data ' + data + index">
               <tableData
                 class="col mt-3"
-                :val="data"
-                :header="name"
+                :val="data[colLabel]"
+                :header="colLabel"
                 :rowNum="index"
-                @edit="editPhraseV2"
+                @edit="editPhraseV3"
                 @setEdit="setEditPhrase"
-                @up="moveUpV2"
-                @down="moveDownV2"
-                @removeK="removeKeyV2"
-                @dupe="duplicateRowV2"
+                @up="moveUpV3"
+                @down="moveDownV3"
+                @removeK="removeKeyV3"
+                @dupe="duplicateRowV3"
               />
             </div>
-          <input v-show="name != 'Keys'" type="file" hidden @change="importJSON" :id="name" ref="myFiles" accept=".json">
+          <input v-show="colLabel != 'Keys'" type="file" hidden @change="importJSON" :id="colLabel" ref="myFiles" accept=".json">
           <div class="btn-group mt-4 mb-4">
-            <button class="btn btn-outline-secondary" @click="importing(name)" v-show="name != 'Keys'">import</button>
-            <button class="btn btn-outline-secondary" v-show="name != 'Keys'" @click="exportRowsV2(name)">Export</button>
+            <button class="btn btn-outline-secondary" @click="importing(colLabel)" v-show="colLabel != 'Keys'">import</button>
+            <button class="btn btn-outline-secondary" v-show="colLabel != 'Keys'" @click="exportRowsV3(colLabel)">Export</button>
           </div>
         </div>
       </div>
@@ -48,7 +48,7 @@
       </div>
     </div>
     <add-phrase
-      @addPhrase="newAddPhraseV2"
+      @addPhrase="newAddPhraseV3"
     />
   </div>
 </template>
@@ -80,6 +80,7 @@ export default {
       tableEntries:{
         Keys: Array
       },
+      tableEntriesV2:[],
       keys: [],
       timer: Number,
       editKeyButtonText: 'Edit',
@@ -116,10 +117,18 @@ export default {
     //   }
     //   this.keyTableLength = this.keys.length
     // }
+    if(localStorage.getItem("Keys")){
+      this.keys = localStorage.getItem("Keys")
+      this.keys = JSON.parse(this.keys)
+    }
+    if(localStorage.getItem("Columns")){
+      this.cols = localStorage.getItem("Columns")
+      this.cols = JSON.parse(this.cols)
+    }
     if(localStorage.getItem("tableEntries")){
-      this.tableEntries = localStorage.getItem("tableEntries")
-      this.tableEntries = JSON.parse(this.tableEntries)
-      this.keys = this.tableEntries['Keys']
+      this.tableEntriesV2 = localStorage.getItem("tableEntries")
+      this.tableEntriesV2 = JSON.parse(this.tableEntriesV2)
+      // this.keys = this.tableEntries['Keys']
     }
     document.addEventListener("visibilitychange", this.handleVisibilityChange, false);
   },
@@ -129,10 +138,8 @@ export default {
       this.cols = ['Keys']
       this.rows = []
       this.rows.push({'header': 'Keys', 'rows': []})
-      this.tableEntries = {'Keys': []}
-      this.newStoreChangesV2()
-      // this.newStoreChanges('rows')
-      // this.newStoreChanges('cols')
+      this.tableEntriesV2 = []
+      this.newStoreChangesV3()
     },
     editPhrase(newVal){
       var header = this.isEdited.data[1]
@@ -210,7 +217,7 @@ export default {
       }else if (document.visibilityState == 'visible'){
         if(this.autosave == true){
           this.timer = setInterval(() => {
-            this.newStoreChangesV2()
+            this.newStoreChangesV3()
             // this.newStoreChanges('rows')
             // this.newStoreChanges('cols')
           },30000)
@@ -224,21 +231,6 @@ export default {
           this.cols.push(this.langName)
           var header = this.langName
           this.initLangRows(header)
-          this.langName = ""
-          this.newStoreChanges("cols")
-        }
-      }else{
-        this.langName = ''
-      }
-    },
-    newAddLanguageV2 (newLang){
-      this.langName = newLang.charAt(0).toUpperCase() + newLang.slice(1)
-      if(this.cols.indexOf(this.langName) == -1){
-        if(this.langName.length > 0){
-          this.cols.push(this.langName)
-          var header = this.langName
-          this.initLangRows(header)
-          this.tableEntries[this.langName] = []
           this.langName = ""
           this.newStoreChanges("cols")
         }
@@ -376,7 +368,7 @@ export default {
       fr.onload = function () {
         jsonFile = fr.result
         jsonFile = JSON.parse(jsonFile)
-        this.compareKeysV2(jsonFile)
+        this.compareKeysV3(jsonFile)
       }.bind(this)
       fr.readAsText(theFile)
     },
@@ -403,6 +395,25 @@ export default {
       }
       this.keyTableLength = this.keys.length
       this.addImported(toPush)
+    },
+    addImported (toAdd){
+      for(let row in this.rows){
+        if(toAdd.header == this.rows[row].header){
+          this.rows[row] = toAdd
+        }
+      }
+      this.checkTranslationColLength()
+    },
+    checkTranslationColLength(){
+      for(let x in this.rows){
+        if(this.rows[x].rows.length < this.keyTableLength){
+          let ctr = this.keyTableLength - this.rows[x].rows.length
+          for(; ctr > 0; ctr--){
+            this.rows[x].rows.push(null)
+          }
+        }
+      }
+      this.newStoreChanges()
     },
     compareKeysV2 (file){
       var toPush = []
@@ -557,6 +568,20 @@ export default {
         this.notify('info')
       }
     },
+    newAddLanguageV2 (newLang){
+      this.langName = newLang.charAt(0).toUpperCase() + newLang.slice(1)
+      if(this.cols.indexOf(this.langName) == -1){
+        if(this.langName.length > 0){
+          this.cols.push(this.langName)
+          var header = this.langName
+          this.initLangRows(header)
+          this.tableEntries[this.langName] = []
+          this.newStoreChanges("cols")
+        }
+      }else{
+        this.langName = ''
+      }
+    },
     exportRowsV2(header){
       var tempK, tempV
       var row = {}
@@ -575,25 +600,141 @@ export default {
       this.newStoreChangesV2()
       this.autosave = true
     },
-    addImported (toAdd){
-      for(let row in this.rows){
-        if(toAdd.header == this.rows[row].header){
-          this.rows[row] = toAdd
+    compareKeysV3 (file){
+      for(let f in file){
+        if(this.keys.indexOf(f) < 0){
+          this.keys.push(f)
+          this.tableEntriesV2.push({'Keys': f})
         }
+        this.tableEntriesV2[this.keys.indexOf(f)][this.uploader] = file[f]
       }
-      this.checkTranslationColLength()
+      this.newStoreChangesV3()
     },
-    checkTranslationColLength(){
-      for(let x in this.rows){
-        if(this.rows[x].rows.length < this.keyTableLength){
-          let ctr = this.keyTableLength - this.rows[x].rows.length
-          for(; ctr > 0; ctr--){
-            this.rows[x].rows.push(null)
-          }
+    newAddLanguageV3 (newLang){
+      this.langName = newLang.charAt(0).toUpperCase() + newLang.slice(1)
+      if(this.cols.indexOf(this.langName) == -1){
+        if(this.langName.length > 0){
+          this.cols.push(this.langName)
         }
+        this.newStoreChangesV3()
+        this.langName = ''
       }
-      this.newStoreChanges()
-    }
+    },   
+    newAddPhraseV3(newAddPhrase){
+      this.phrase = newAddPhrase
+      if(this.keys.indexOf(this.phrase) == -1){
+        if(this.phrase.length > 0){
+          this.keys.push(this.phrase)
+          this.tableEntriesV2.push({'Keys': this.phrase})
+          this.newStoreChangesV3()
+        }
+      }else{
+        this.notify('info')
+      }
+      this.phrase = ''
+    },
+    deleteHeaderV3 (val){
+      var indx = this.cols.indexOf(val)
+      this.tableEntriesV2.forEach(el => {
+        delete el[val]
+      })
+      this.cols.splice(indx,1)
+    },
+    editPhraseV3(newVal){
+      var header = this.isEdited.data[1]
+      var num = this.isEdited.data[2]
+      if(newVal.target.value == null || newVal.target.value == ''){
+        this.removeKeyV3(num)
+      }else{
+        this.tableEntriesV2[num][header] = newVal.target.value
+      }
+    },
+    sortKeysV3(){
+      var len = this.keys.length - 1
+      var keyCopy = []
+      var dir = []
+      var tempArr = []
+      this.keys.forEach(el => {
+        if(el != '' && el != null){
+          keyCopy.push(el)
+        }
+      })
+      keyCopy.sort( (a,b) => {
+        let x = a.toUpperCase(),
+        y = b.toUpperCase()
+        return x == y ? 0 : x > y ? 1 : -1
+      })
+      keyCopy.forEach(el=>{
+        dir.push(this.keys.indexOf(el))
+      })
+      for(let ctr = 0; ctr <= len ; ctr++){
+        tempArr[ctr] = this.tableEntriesV2[dir[ctr]]
+      }
+      this.tableEntriesV2 = tempArr
+      this.keys.sort( (a,b) => {
+        let x = a.toUpperCase(),
+        y = b.toUpperCase()
+        return x == y ? 0 : x > y ? 1 : -1
+      })
+    },
+    duplicateRowV3(indx){
+      this.tableEntriesV2.splice(indx,0,this.tableEntriesV2[indx])
+      this.keys.splice(indx,0,this.keys[indx])
+    },
+    removeKeyV3 (indx){
+      this.tableEntriesV2.splice(indx,1)
+      this.keys.splice(indx,1)
+    },
+    moveDownV3 (indx) {
+      var temp1,temp2
+      if(this.keys.length - 1 > indx){
+        temp1 = this.tableEntriesV2[indx + 1]
+        temp2 = this.tableEntriesV2[indx]
+        this.tableEntriesV2[indx] = temp1
+        this.tableEntriesV2[indx + 1] = temp2      
+        this.keys.splice(indx,2,this.keys[indx + 1],this.keys[indx])
+      }
+    },
+    moveUpV3 (indx) {
+      var temp1,temp2
+      if(indx >= 1){
+        temp1 = this.tableEntriesV2[indx]
+        temp2 = this.tableEntriesV2[indx - 1]
+        this.tableEntriesV2[indx] = temp2
+        this.tableEntriesV2[indx - 1] = temp1
+        this.keys.splice(indx - 1,2,this.keys[indx],this.keys[indx - 1])
+      }
+    },
+    newStoreChangesV3(){
+      if(this.autosave == false){
+        this.autosave = true
+        this.handleVisibilityChange()
+      }
+      var keys = JSON.stringify(this.keys)
+      var cols = JSON.stringify(this.cols)
+      var toStore = JSON.stringify(this.tableEntriesV2)
+      localStorage.setItem('tableEntries', toStore)
+      localStorage.setItem('Keys', keys)
+      localStorage.setItem('Columns', cols)
+    },
+    exportRowsV3(header){
+      var tempK, tempV
+      var row = {}
+      for(let el in this.tableEntries[header]){
+        tempK = this.tableEntriesV2[el]['Keys']
+        tempV = this.tableEntriesV2[el][header]
+        Object.assign(row, {[tempK]: tempV})
+      }
+      var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(row, null, '\t'))
+      var downloadAnchorNode = document.createElement('a')
+      downloadAnchorNode.setAttribute("href",     dataStr)
+      downloadAnchorNode.setAttribute("download", header + ".json")
+      document.body.appendChild(downloadAnchorNode)
+      downloadAnchorNode.click()
+      downloadAnchorNode.remove()
+      this.newStoreChangesV3()
+      this.autosave = true
+    },
   }
 }
 </script>
