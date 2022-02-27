@@ -4,6 +4,13 @@
       <h1>JSON Translator</h1>
     </div>
     <button class="btn btn-danger" @click="resetTranslator">Reset</button>
+    <div class="row mt-4">
+      <div class="col">
+        <div :hidden="isNotifyingLang" class="alert " :class="notifClass" role="alert">
+          {{alertMessage}}
+        </div>
+      </div>
+    </div>
     <addLanguage
       @addLang="newAddLanguageV3"
     />
@@ -40,16 +47,16 @@
         </div>
       </div>
     </div>
+    <add-phrase
+      @addPhrase="newAddPhraseV3"
+    />
     <div class="row mt-4">
       <div class="col">
-        <div :hidden="isNotifying" class="alert " :class="notifClass" role="alert">
+        <div :hidden="isNotifyingPhrase" class="alert " :class="notifClass" role="alert">
           {{alertMessage}}
         </div>
       </div>
     </div>
-    <add-phrase
-      @addPhrase="newAddPhraseV3"
-    />
   </div>
 </template>
 
@@ -84,15 +91,11 @@ export default {
       },
       uploader: '',
       keyTableLength: Number,
-      isNotifying: true,
+      isNotifyingLang: true,
+      isNotifyingPhrase: true,
       alertMessage: String,
       notifClass: String,
-      notifType: {
-        success: 'alert-success',
-        fail: 'alert-danger',
-        info: 'alert-info'
-      }
-      
+      notifType: ''
     }
   },
   mounted() {
@@ -138,19 +141,28 @@ export default {
         this.newStoreChangesV3()
         },30000)
     },
-    notify(type){
-      var indx = this.keys.indexOf(this.phrase)
+    notify(val){
+      var indx,msg
+      if(val == this.phrase){
+        indx = this.keys.indexOf(val)
+        msg = val + " already exists! It can be found at line " + indx
+        this.isNotifyingPhrase = false
+      }else{
+        indx = this.cols.indexOf(val)
+        msg = val + " already exists!"
+        this.isNotifyingLang = false
+      }
       indx = indx + 1
-      this.isNotifying = false
-      this.notifClass = this.notifType[type]
-      this.alertMessage = this.phrase + " already exists! It can be found at line " + indx
+      this.notifClass = 'alert-info'
+      this.alertMessage = msg
       this.phrase = ''
       setTimeout( () => {
         this.clearNotif()
       },3000)
     },
     clearNotif(){
-      this.isNotifying = false
+      this.isNotifyingPhrase = true
+      this.isNotifyingLang = true
       this.notifClass = ''
       this.alertMessage = ''
     },
@@ -188,8 +200,10 @@ export default {
           this.cols.push(this.langName)
         }
         this.newStoreChangesV3()
-        this.langName = ''
+      }else{
+        this.notify(newLang)
       }
+      this.langName = ''
     },   
     newAddPhraseV3(newAddPhrase){
       this.phrase = newAddPhrase
@@ -200,7 +214,7 @@ export default {
           this.newStoreChangesV3()
         }
       }else{
-        this.notify('info')
+        this.notify(newAddPhrase)
       }
       this.phrase = ''
     },
