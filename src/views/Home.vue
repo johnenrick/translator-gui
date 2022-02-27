@@ -92,7 +92,7 @@ export default {
       },
       uploader: '',
       keyTableLength: Number,
-      autosave: false,
+      autosave: true,
       isNotifying: true,
       alertMessage: String,
       notifClass: String,
@@ -720,7 +720,7 @@ export default {
     exportRowsV3(header){
       var tempK, tempV
       var row = {}
-      for(let el in this.tableEntries[header]){
+      for(let el in this.tableEntriesV2[header]){
         tempK = this.tableEntriesV2[el]['Keys']
         tempV = this.tableEntriesV2[el][header]
         Object.assign(row, {[tempK]: tempV})
