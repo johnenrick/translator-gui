@@ -32,10 +32,10 @@
                 @dupe="duplicateRowV3"
               />
             </div>
-          <input v-show="colLabel != 'Keys'" type="file" hidden @change="importJSON" :id="colLabel" ref="myFiles" accept=".json">
+          <input v-show="colLabel != 'KEYS'" type="file" hidden @change="importJSON" :id="colLabel" ref="myFiles" accept=".json">
           <div class="btn-group mt-4 mb-4">
-            <button class="btn btn-outline-secondary" @click="importing(colLabel)" v-show="colLabel != 'Keys'">import</button>
-            <button class="btn btn-outline-secondary" v-show="colLabel != 'Keys'" @click="exportRowsV3(colLabel)">Export</button>
+            <button class="btn btn-outline-secondary" @click="importing(colLabel)" v-show="colLabel != 'KEYS'">import</button>
+            <button class="btn btn-outline-secondary" v-show="colLabel != 'KEYS'" @click="exportRowsV3(colLabel)">Export</button>
           </div>
         </div>
       </div>
@@ -72,18 +72,10 @@ export default {
     return {
       langName: '',
       phrase: '',
-      cols: ['Keys'],
-      rows: [{
-        header: 'Keys',
-        rows: []
-      }],
-      tableEntries:{
-        Keys: Array
-      },
+      cols: ['KEYS'],
       tableEntriesV2:[],
       keys: [],
       timer: Number,
-      editKeyButtonText: 'Edit',
       file: '',
       isEdited: {
         col: String,
@@ -92,7 +84,6 @@ export default {
       },
       uploader: '',
       keyTableLength: Number,
-      autosave: true,
       isNotifying: true,
       alertMessage: String,
       notifClass: String,
@@ -105,18 +96,6 @@ export default {
     }
   },
   mounted() {
-    // if(localStorage.getItem("cols")){
-    //   this.cols = localStorage.getItem("cols")
-    //   this.cols = JSON.parse(this.cols)
-    // }
-    // if(localStorage.getItem("rows")){
-    //   this.rows = localStorage.getItem("rows")
-    //   this.rows = JSON.parse(this.rows)
-    //   for(let el in this.rows[0].rows){
-    //     this.keys[el] = this.rows[0].rows[el]
-    //   }
-    //   this.keyTableLength = this.keys.length
-    // }
     if(localStorage.getItem("Keys")){
       this.keys = localStorage.getItem("Keys")
       this.keys = JSON.parse(this.keys)
@@ -128,83 +107,16 @@ export default {
     if(localStorage.getItem("tableEntries")){
       this.tableEntriesV2 = localStorage.getItem("tableEntries")
       this.tableEntriesV2 = JSON.parse(this.tableEntriesV2)
-      // this.keys = this.tableEntries['Keys']
     }
     document.addEventListener("visibilitychange", this.handleVisibilityChange, false);
+    this.handleVisibilityChange()
   },
   methods: {
     resetTranslator(){
       this.keys = []
-      this.cols = ['Keys']
-      this.rows = []
-      this.rows.push({'header': 'Keys', 'rows': []})
+      this.cols = ['KEYS']
       this.tableEntriesV2 = []
       this.newStoreChangesV3()
-    },
-    editPhrase(newVal){
-      var header = this.isEdited.data[1]
-      var num = this.isEdited.data[2]
-      if(newVal.target.value == ''){
-        if(header == "Keys"){
-          this.removeKey(num)
-        }else{
-          this.rows[this.cols.indexOf(header)].rows[num] = null  
-        }
-      }else{
-      this.rows[this.cols.indexOf(header)].rows[num] = newVal.target.value
-      }
-      this.newStoreChanges("rows")
-    },
-    duplicateRow(indx){
-      this.rows.forEach(el => {
-        el.rows.splice(indx,0,el.rows[indx])
-      })
-      this.keys.splice(indx,0,this.keys[indx])
-      this.newStoreChanges('rows')
-      this.keyTableLength = this.keys.length
-    },
-    sortKeys(){
-      var len = this.keyTableLength - 1
-      var keyCopy = []
-      var dir = []
-      var tempArr = []
-      this.keys.forEach(el => {
-        if(el != '' || el != null){
-          keyCopy.push(el)
-        }
-      })
-      keyCopy.sort( (a,b) => {
-        let x = a.toUpperCase(),
-        y = b.toUpperCase()
-        return x == y ? 0 : x > y ? 1 : -1
-      })
-      keyCopy.forEach(el=>{
-        dir.push(this.keys.indexOf(el))
-      })
-      for(let col in this.rows){
-        for(let ctr = 0; ctr <= len; ctr ++){
-          if(this.rows[col].rows[dir[ctr]]){
-            tempArr[ctr] = this.rows[col].rows[dir[ctr]]
-          }else{
-            tempArr[ctr] = null
-          }
-        }
-        this.rows[col].rows = tempArr
-        tempArr = []
-      }
-      this.keys.sort( (a,b) => {
-        let x = a.toUpperCase(),
-        y = b.toUpperCase()
-        return x == y ? 0 : x > y ? 1 : -1
-      })
-      this.newStoreChanges('rows')
-    },
-    deleteHeader (val){
-      var indx = this.cols.indexOf(val)
-      this.rows.splice(indx,1)
-      this.cols.splice(indx,1)
-      this.newStoreChanges('cols')
-      this.newStoreChanges('rows')
     },
     setEditPhrase(data,header,row){
       this.isEdited.col = header
@@ -213,49 +125,18 @@ export default {
     },
     handleVisibilityChange(){
       if(document.visibilityState == 'hidden'){
-        clearInterval(this.timer)
+        this.stopCacheTimer()
       }else if (document.visibilityState == 'visible'){
-        if(this.autosave == true){
-          this.timer = setInterval(() => {
-            this.newStoreChangesV3()
-            // this.newStoreChanges('rows')
-            // this.newStoreChanges('cols')
-          },30000)
-        }
+        this.startCacheTimer()
       }
     },
-    newAddLanguage (newLang){
-      this.langName = newLang.charAt(0).toUpperCase() + newLang.slice(1)
-      if(this.cols.indexOf(this.langName) == -1){
-        if(this.langName.length > 0){
-          this.cols.push(this.langName)
-          var header = this.langName
-          this.initLangRows(header)
-          this.langName = ""
-          this.newStoreChanges("cols")
-        }
-      }else{
-        this.langName = ''
-      }
+    stopCacheTimer(){
+      clearTimeout(this.timer)
     },
-    newAddPhrase(newAddPhrase){
-      this.phrase = newAddPhrase
-      if(this.keys.indexOf(this.phrase) == -1){
-        if(this.phrase.length > 0){
-          for(let x in this.rows){
-            if(x == 0){
-              this.rows[x].rows.push(this.phrase)    
-            }else{
-              this.rows[x].rows.push(null)
-            }  
-          }
-          this.keys.push(this.phrase)
-          this.phrase = ''
-          this.newStoreChanges("rows")
-        }
-      }else{
-        this.notify('info')
-      }
+    startCacheTimer(){
+      this.timer = setTimeout(() => {
+        this.newStoreChangesV3()
+        },30000)
     },
     notify(type){
       var indx = this.keys.indexOf(this.phrase)
@@ -277,91 +158,8 @@ export default {
       document.getElementById(uploader).click()
       this.uploader = uploader
     },
-    exportRows(header){
-      var tempK, tempV
-      var row = {}
-      for(let r in this.rows){
-        if(header == this.rows[r].header){
-          for(let el in this.rows[r].rows){
-            tempK = this.keys[el]
-            tempV = this.rows[r].rows[el]
-            Object.assign(row, {[tempK]: tempV})
-          }
-        }
-      }
-      var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(row, null, '\t'))
-      var downloadAnchorNode = document.createElement('a')
-      downloadAnchorNode.setAttribute("href",     dataStr)
-      downloadAnchorNode.setAttribute("download", header + ".json")
-      document.body.appendChild(downloadAnchorNode)
-      downloadAnchorNode.click()
-      downloadAnchorNode.remove()
-      this.newStoreChanges('rows')
-      this.newStoreChanges('cols')
-      this.autosave = true
-    },
-    newStoreChanges(type){
-      if(this.autosave == false){
-        this.autosave = true
-        this.handleVisibilityChange()
-      }
-      var toStore = []
-      if(type == 'cols'){
-        this.cols.forEach(element => {
-          toStore.push(element)
-        })
-      }else if(type == 'rows'){
-        this.rows.forEach(element => {
-          toStore.push(element)
-        })
-      }else{
-        type = 'rows'
-        toStore = this.rows
-      }
-      toStore = JSON.stringify(toStore)
-      localStorage.setItem(type, toStore)
-    },
-    initLangRows(lang){
-      var newRows = []
-      var obj = {
-        header: lang,
-        rows: []
-      }
-      if(this.keys.length > 0){
-        newRows = Array(this.keys.length).fill(null)
-      }
-      obj.rows = newRows
-      this.rows.push(obj)
-      this.newStoreChanges()
-    },
-    moveUp (indx) {
-      if(indx >= 1){
-      var newIndex = indx - 1
-      this.rows.forEach(el => {
-        el.rows.splice(newIndex,2,el.rows[indx],el.rows[newIndex])
-      })
-      this.keys.splice(newIndex,2,this.keys[indx],this.keys[newIndex])
-      }
-      this.newStoreChanges('rows')
-    },
-    moveDown (indx) {
-      if(this.keys.length - 1 > indx){
-      this.rows.forEach(el => {
-        el.rows.splice(indx,2,el.rows[indx + 1],el.rows[indx])
-      })
-      this.keys.splice(indx,2,this.keys[indx + 1],this.keys[indx])
-      }
-      this.newStoreChanges('rows')
-    },
-    removeKey (indx){
-      this.keys.splice(indx,1)
-      for(let el in this.rows){
-        this.rows[el].rows.splice(indx,1) 
-      }
-      this.keyTableLength = this.keys.length
-      this.newStoreChanges('rows')
-    },
     importJSON(event){
+      this.stopCacheTimer()
       var theFile = event.target.files[0]
       var fr = new FileReader
       var jsonFile
@@ -372,246 +170,19 @@ export default {
       }.bind(this)
       fr.readAsText(theFile)
     },
-    compareKeys (file){
-      var toPush = {
-        header: this.uploader,
-        rows: []
-      }
-      for(let lang in this.cols){
-        if(this.cols[lang] == this.uploader){
-          for(let f in file){
-            if(this.keys.indexOf(f) > -1){
-              toPush.rows[this.keys.indexOf(f)] = file[f]
-            }else{
-              this.keys.push(f)
-              this.rows[0].rows.push(f)
-              toPush.rows[this.keys.indexOf(f)] = file[f]
-            }
-            if(this.keys.length > toPush.rows.length){
-              toPush.rows[this.keys.length - 1] = null
-            }
-          }
-        }
-      }
-      this.keyTableLength = this.keys.length
-      this.addImported(toPush)
-    },
-    addImported (toAdd){
-      for(let row in this.rows){
-        if(toAdd.header == this.rows[row].header){
-          this.rows[row] = toAdd
-        }
-      }
-      this.checkTranslationColLength()
-    },
-    checkTranslationColLength(){
-      for(let x in this.rows){
-        if(this.rows[x].rows.length < this.keyTableLength){
-          let ctr = this.keyTableLength - this.rows[x].rows.length
-          for(; ctr > 0; ctr--){
-            this.rows[x].rows.push(null)
-          }
-        }
-      }
-      this.newStoreChanges()
-    },
-    compareKeysV2 (file){
-      var toPush = []
-      for(let f in file){
-        if(this.keys.length > toPush.length){
-          toPush[this.keys.length - 1] = null
-        }
-        if(this.keys.indexOf(f) > -1){
-          toPush[this.keys.indexOf(f)] = file[f]
-        }else{
-          this.keys.push(f)
-          toPush.push(file[f])
-        }
-      }
-      if(this.tableEntries[this.uploader].length == 0){
-        this.tableEntries[this.uploader] = toPush
-      }else{
-        for(let el in this.keys){
-          if(toPush[el] != null && toPush[el] != '' && toPush[el] != undefined){
-            this.tableEntries[this.uploader][el] = toPush[el]
-          }
-        }
-      }
-      this.tableEntries["Keys"] = this.keys
-      this.keyTableLength = this.keys.length
-      this.checkTranslationColLengthV2()
-      this.newStoreChangesV2()
-    },
-    newStoreChangesV2(){
-      if(this.autosave == false){
-        this.autosave = true
-        this.handleVisibilityChange()
-      }
-      var toStore = JSON.stringify(this.tableEntries)
-      localStorage.setItem('tableEntries', toStore)
-    },
-    moveUpV2 (indx) {
-      var temp1,temp2
-      if(indx >= 1){
-        for(let el in this.tableEntries){
-          temp1 = this.tableEntries[el][indx]
-          temp2 = this.tableEntries[el][indx - 1]
-          this.tableEntries[el][indx] = temp2
-          this.tableEntries[el][indx - 1] = temp1
-        }
-        this.keys = this.tableEntries["Keys"]
-      }
-    },
-    moveDownV2 (indx) {
-      var temp1,temp2
-      if(this.keys.length - 1 > indx){
-        for(let el in this.tableEntries){
-          temp1 = this.tableEntries[el][indx + 1]
-          temp2 = this.tableEntries[el][indx]
-          this.tableEntries[el][indx] = temp1
-          this.tableEntries[el][indx + 1] = temp2
-        }
-        this.keys = this.tableEntries["Keys"]
-      }
-    },
-    removeKeyV2 (indx){
-      for(let el in this.tableEntries){
-        this.tableEntries[el].splice(indx,1) 
-      }
-      this.keys = this.tableEntries['Keys']
-      this.keyTableLength = this.keys.length
-    },
-    duplicateRowV2(indx){
-      for(let el in this.tableEntries){
-        this.tableEntries[el].splice(indx,0,this.tableEntries[el][indx])
-      }
-      this.keys = this.tableEntries['Keys']
-      this.keyTableLength = this.keys.length
-    },
-    checkTranslationColLengthV2(){
-      for(let el in this.tableEntries){
-        if(this.tableEntries[el].length < this.keyTableLength){
-          let ctr = this.keyTableLength - this.tableEntries[el].length
-          for(; ctr > 0; ctr--){
-            this.tableEntries[el].push(null)
-          }
-        }
-      }
-      this.newStoreChanges()
-    },
-    sortKeysV2(){
-      var len = this.keyTableLength - 1
-      var keyCopy = []
-      var dir = []
-      var tempArr = []
-      this.keys.forEach(el => {
-        if(el != '' && el != null){
-          keyCopy.push(el)
-        }
-      })
-      keyCopy.sort( (a,b) => {
-        let x = a.toUpperCase(),
-        y = b.toUpperCase()
-        return x == y ? 0 : x > y ? 1 : -1
-      })
-      keyCopy.forEach(el=>{
-        dir.push(this.keys.indexOf(el))
-      })
-      for(let el in this.tableEntries){
-        for(let ctr = 0; ctr <= len; ctr++){
-          if(this.tableEntries[el][dir[ctr]]){
-            tempArr[ctr] = this.tableEntries[el][dir[ctr]]
-          }else{
-            tempArr[ctr] = null
-          }
-        }
-        this.tableEntries[el] = tempArr
-        tempArr = []
-      }
-      this.keys = this.tableEntries['Keys']
-    },
-    editPhraseV2(newVal){
-      var header = this.isEdited.data[1]
-      var num = this.isEdited.data[2]
-      if(newVal.target.value == ''){
-        if(header == "Keys"){
-          this.removeKey(num)
-        }else{
-          this.tableEntries[header][num] = null  
-        }
-      }else{
-      this.tableEntries[header][num] = newVal.target.value
-      }
-      this.newStoreChangesV2()
-    },
-    deleteHeaderV2 (val){
-      var indx = this.cols.indexOf(val)
-      delete this.tableEntries[val]
-      this.cols.splice(indx,1)
-      this.newStoreChangesV2()
-    },
-    newAddPhraseV2(newAddPhrase){
-      this.phrase = newAddPhrase
-      if(this.keys.indexOf(this.phrase) == -1){
-        if(this.phrase.length > 0){
-          for(let el in this.tableEntries){
-            if(el == 'Keys'){
-              this.tableEntries[el].push(this.phrase)
-            }else{
-              this.tableEntries[el].push(null)
-            }
-          }
-          this.phrase = ''
-          this.newStoreChangesV2()
-        }
-      }else{
-        this.notify('info')
-      }
-    },
-    newAddLanguageV2 (newLang){
-      this.langName = newLang.charAt(0).toUpperCase() + newLang.slice(1)
-      if(this.cols.indexOf(this.langName) == -1){
-        if(this.langName.length > 0){
-          this.cols.push(this.langName)
-          var header = this.langName
-          this.initLangRows(header)
-          this.tableEntries[this.langName] = []
-          this.newStoreChanges("cols")
-        }
-      }else{
-        this.langName = ''
-      }
-    },
-    exportRowsV2(header){
-      var tempK, tempV
-      var row = {}
-      for(let el in this.tableEntries[header]){
-        tempK = this.tableEntries['Keys'][el]
-        tempV = this.tableEntries[header][el]
-        Object.assign(row, {[tempK]: tempV})
-      }
-      var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(row, null, '\t'))
-      var downloadAnchorNode = document.createElement('a')
-      downloadAnchorNode.setAttribute("href",     dataStr)
-      downloadAnchorNode.setAttribute("download", header + ".json")
-      document.body.appendChild(downloadAnchorNode)
-      downloadAnchorNode.click()
-      downloadAnchorNode.remove()
-      this.newStoreChangesV2()
-      this.autosave = true
-    },
     compareKeysV3 (file){
       for(let f in file){
         if(this.keys.indexOf(f) < 0){
           this.keys.push(f)
-          this.tableEntriesV2.push({'Keys': f})
+          this.tableEntriesV2.push({'KEYS': f})
         }
         this.tableEntriesV2[this.keys.indexOf(f)][this.uploader] = file[f]
       }
       this.newStoreChangesV3()
     },
     newAddLanguageV3 (newLang){
-      this.langName = newLang.charAt(0).toUpperCase() + newLang.slice(1)
+      this.stopCacheTimer()
+      this.langName = newLang.toUpperCase()
       if(this.cols.indexOf(this.langName) == -1){
         if(this.langName.length > 0){
           this.cols.push(this.langName)
@@ -625,7 +196,7 @@ export default {
       if(this.keys.indexOf(this.phrase) == -1){
         if(this.phrase.length > 0){
           this.keys.push(this.phrase)
-          this.tableEntriesV2.push({'Keys': this.phrase})
+          this.tableEntriesV2.push({'KEYS': this.phrase})
           this.newStoreChangesV3()
         }
       }else{
@@ -706,26 +277,23 @@ export default {
       }
     },
     newStoreChangesV3(){
-      if(this.autosave == false){
-        this.autosave = true
-        this.handleVisibilityChange()
-      }
       var keys = JSON.stringify(this.keys)
       var cols = JSON.stringify(this.cols)
       var toStore = JSON.stringify(this.tableEntriesV2)
       localStorage.setItem('tableEntries', toStore)
       localStorage.setItem('Keys', keys)
       localStorage.setItem('Columns', cols)
+      this.startCacheTimer()
     },
     exportRowsV3(header){
+      clearTimeout(this.timer)
       var tempK, tempV
       var row = {}
       for(let el in this.tableEntriesV2){
-        tempK = this.tableEntriesV2[el]['Keys']
+        tempK = this.tableEntriesV2[el]['KEYS']
         tempV = this.tableEntriesV2[el][header]
         Object.assign(row, {[tempK]: tempV})
       }
-      console.log(row)
       var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(row, null, '\t'))
       var downloadAnchorNode = document.createElement('a')
       downloadAnchorNode.setAttribute("href",     dataStr)
@@ -733,7 +301,6 @@ export default {
       document.body.appendChild(downloadAnchorNode)
       downloadAnchorNode.click()
       downloadAnchorNode.remove()
-      this.autosave = true
       this.newStoreChangesV3()
     },
   }
