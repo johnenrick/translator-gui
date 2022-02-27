@@ -720,11 +720,12 @@ export default {
     exportRowsV3(header){
       var tempK, tempV
       var row = {}
-      for(let el in this.tableEntriesV2[header]){
+      for(let el in this.tableEntriesV2){
         tempK = this.tableEntriesV2[el]['Keys']
         tempV = this.tableEntriesV2[el][header]
         Object.assign(row, {[tempK]: tempV})
       }
+      console.log(row)
       var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(row, null, '\t'))
       var downloadAnchorNode = document.createElement('a')
       downloadAnchorNode.setAttribute("href",     dataStr)
@@ -732,8 +733,8 @@ export default {
       document.body.appendChild(downloadAnchorNode)
       downloadAnchorNode.click()
       downloadAnchorNode.remove()
-      this.newStoreChangesV3()
       this.autosave = true
+      this.newStoreChangesV3()
     },
   }
 }
