@@ -4,7 +4,7 @@
       <h1>JSON Translator</h1>
     </div>
     <button class="btn btn-danger" @click="resetTranslator">Reset</button>
-    <div class="row mt-4">
+    <div class="row standard-height mt-4">
       <div class="col">
         <div :hidden="isNotifyingLang" class="alert " :class="notifClass" role="alert">
           {{alertMessage}}
@@ -14,43 +14,75 @@
     <addLanguage
       @addLang="newAddLanguageV3"
     />
+    <div class="row standard-height">
+      <div class="col">
+        <p>Displaying : <button @click="switchView()" class="btn btn-outline-secondary">{{viewType}}</button></p>
+      </div>
+    </div>
     <div class="container testimonial-group">
-      <div class="row flex-nowrap align-self-center">
-        <div style="min-width: 650px" class="col border-top border-bottom border-dark" v-for="(colLabel,name) in cols" v-bind:key="name">
+      <div class="col flex-nowrap align-self-center">
+        <div class="row standard-height flex-nowrap align-self-center">
           <headers
-            class="col border-bottom border-dark"
-            :header="colLabel"
+            class="col border-bottom border-dark very-wide"
+            :header="'KEYS'"
             @exportValues="exportRowsV3"
             @importValues="importing"
             @deleteHeader="deleteHeaderV3"
             @alphabetical="sortKeysV3"
           />
-            <div v-for="(data,index) in tableEntriesV2" v-bind:key="'data ' + data + index">
-              <tableData
-                class="col mt-3"
-                :val="data[colLabel]"
-                :header="colLabel"
-                :rowNum="index"
-                @edit="editPhraseV3"
-                @setEdit="setEditPhrase"
-                @up="moveUpV3"
-                @down="moveDownV3"
-                @removeK="removeKeyV3"
-                @dupe="duplicateRowV3"
-              />
-            </div>
-          <input v-show="colLabel != 'KEYS'" type="file" hidden @change="importJSON" :id="colLabel" ref="myFiles" accept=".json">
-          <div class="btn-group mt-4 mb-4">
-            <button class="btn btn-outline-secondary" @click="importing(colLabel)" v-show="colLabel != 'KEYS'">import</button>
-            <button class="btn btn-outline-secondary" v-show="colLabel != 'KEYS'" @click="exportRowsV3(colLabel)">Export</button>
+          <div class="col very-wide border-bottom border-dark" v-for="col in cols" :key="col">
+            <headers
+              :header="col"
+              @exportValues="exportRowsV3"
+              @importValues="importing"
+              @deleteHeader="deleteHeaderV3"
+              @alphabetical="sortKeysV3"
+            />
+            <input type="file" hidden @change="importJSON" :id="col" ref="myFiles" accept=".json">
           </div>
+        </div>
+        <div class="row standard-height flex-nowrap align-self-center mt-3" v-for="(entry,index) in tableEntriesV2" :key="entry">
+          <div class="col very-wide border-bottom" v-show="viewType == 'All rows'">
+            <tableData
+              :val="entry['KEYS']"
+              :rowNum="index"
+              :header="'KEYS'"
+              @edit="editPhraseV3"
+              @setEdit="setEditPhrase"
+              @up="moveUpV3"
+              @down="moveDownV3"
+              @removeK="removeKeyV3"
+              @dupe="duplicateRowV3"
+            />
+          </div>
+          <div  class="col border-bottom very-wide" v-for="col in cols" :key="col">
+            <div v-show="viewType == 'All rows'">
+            <textarea
+              class="form-control border-0"
+              @change="setEditPhrase($event)"
+              @click="setEditPhrase(entry[col],col,index)"
+              :value="entry[col]"
+              type="text"
+            />
+            </div>
+          </div>
+        </div>
+        <div class="row standard-height flex-nowrap align-self-center mt-4">
+          <div class="col very-wide">
+            <button class="btn btn-outline-secondary rounded" @click="sortKeysV3">Sort (A-Z)</button>
+          </div>
+        <div class="col very-wide" v-for="col in cols" :key="col">
+          <button class="btn btn-outline-secondary" @click="importing(col)">Import</button>
+          <button class="btn btn-outline-secondary"  @click="exportRowsV3(col)">Export</button>
+          <input type="file" hidden @change="importJSON" :id="col" ref="myFiles" accept=".json">
         </div>
       </div>
     </div>
+  </div>
     <add-phrase
       @addPhrase="newAddPhraseV3"
     />
-    <div class="row mt-4">
+    <div class="row standard-height mt-4">
       <div class="col">
         <div :hidden="isNotifyingPhrase" class="alert " :class="notifClass" role="alert">
           {{alertMessage}}
@@ -77,9 +109,10 @@ export default {
   },
   data() {
     return {
+      viewType: 'All rows',
       langName: '',
       phrase: '',
-      cols: ['KEYS'],
+      cols: [],
       tableEntriesV2:[],
       keys: [],
       timer: Number,
@@ -115,9 +148,16 @@ export default {
     this.handleVisibilityChange()
   },
   methods: {
+    switchView(){
+      if(this.viewType == 'All rows'){
+        this.viewType = 'Lacking rows'
+      }else if(this.viewType == "Lacking rows"){
+        this.viewType = 'All rows'
+      }
+    },
     resetTranslator(){
       this.keys = []
-      this.cols = ['KEYS']
+      this.cols = []
       this.tableEntriesV2 = []
       this.newStoreChangesV3()
     },
@@ -322,49 +362,6 @@ export default {
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-.counter {
-  font-size: 80px
-}
-.buttons button{
-  font-size: 20px;
-  margin: 0 10px;
-}
-.grid-options{
-  display: grid;
-  grid-auto-flow: column;
-}
-.grid-container{
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 200px;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-}
-.grid-data{
-  display: grid;
-  grid-auto-flow: row;
-  text-align: left;
-}
-.bordered{
-  margin-top: 5px;
-  margin-bottom: 5px;
-  border-bottom: solid;
-  border-width: thin;
-  min-height: 20px;
-}
-.header-border{
-  margin-top: 5px;
-  margin-bottom: 5px;
-  border-width: thick;
-  border-bottom: solid;
-}
 .testimonial-group > .row {
   overflow-x: auto;
   white-space: nowrap;
@@ -372,5 +369,11 @@ export default {
 .testimonial-group > .row > .col {
   display: inline-block;
   float: none;
+}
+.very-wide{
+  min-width: 650px;
+}
+.standard-height{
+  min-height: 50px;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-    <div class="p-2"  style="min-height: 50px">
+    <div>
         <h4>{{header}}</h4>
         <div class="w-100"></div>
         <div class="btn-group">

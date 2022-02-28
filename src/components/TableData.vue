@@ -1,15 +1,15 @@
 <template>
-    <div class="border-bottom align-middle p-2">
-        <div  class="input-group" style="min-height: 50px">
+    <div class="align-middle">
+        <div  class="input-group" >
             <div class="input-group-prepend" v-show="header == 'KEYS'">
                 <span class="input-group-text">{{rowNum + 1}}</span>
             </div>
-            <textarea rows="1" style="min-height: 40px" class="form-control border-0" @change="$emit('edit',$event)" @click="$emit('setEdit',[val,header,rowNum]);isHidden = !isHidden" :value="val" type="text"/>
-            <div class="align-middle">
-                <button style="height: 40px" class="btn btn-outline-secondary" v-show="header == 'KEYS'" @click="$emit('dupe',rowNum)"><font-awesome-icon :icon="['fas', 'clone']" /></button>
-                <button style="height: 40px; width: 40px" class="btn btn-outline-secondary" v-show="header == 'KEYS'" @click="$emit('up',rowNum)"><font-awesome-icon :icon="['fas', 'arrow-up']" /></button>
-                <button style="height: 40px; width: 40px" class="btn btn-outline-secondary" v-show="header == 'KEYS'" @click="$emit('down',rowNum)"><font-awesome-icon :icon="['fas', 'arrow-down']" /></button>
-                <button style="height: 40px; width: 40px" class="btn btn-outline-danger" v-show="header == 'KEYS'" @click="$emit('removeK',rowNum)"><font-awesome-icon :icon="['fas', 'trash-can']" /></button>
+            <textarea rows="1" class="form-control border-0" @change="$emit('edit',$event)" @click="$emit('setEdit',[val,header,rowNum]);isHidden = !isHidden" :value="val" type="text"/>
+            <div class="align-self-center">
+                <button class="btn btn-outline-secondary icon-size"  @click="$emit('dupe',rowNum)"><font-awesome-icon :icon="['fas', 'clone']" /></button>
+                <button class="btn btn-outline-secondary icon-size"  @click="$emit('up',rowNum)"><font-awesome-icon :icon="['fas', 'arrow-up']" /></button>
+                <button class="btn btn-outline-secondary icon-size"  @click="$emit('down',rowNum)"><font-awesome-icon :icon="['fas', 'arrow-down']" /></button>
+                <button class="btn btn-outline-danger icon-size"  @click="$emit('removeK',rowNum)"><font-awesome-icon :icon="['fas', 'trash-can']" /></button>
             </div>
         </div>
     </div>
@@ -46,4 +46,9 @@
 </script>
 
 <style>
+    .icon-size{
+        height: 40px;
+        width: 40px
+    }
+    
 </style>
