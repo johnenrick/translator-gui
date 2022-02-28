@@ -12,7 +12,7 @@
       </div>
     </div>
     <addLanguage
-      @addLang="newAddLanguageV3"
+      @addLang="newAddLanguage"
     />
     <div class="row standard-height">
       <div class="col">
@@ -25,37 +25,37 @@
           <headers
             class="col border-bottom border-dark very-wide"
             :header="'KEYS'"
-            @exportValues="exportRowsV3"
+            @exportValues="exportRows"
             @importValues="importing"
-            @deleteHeader="deleteHeaderV3"
-            @alphabetical="sortKeysV3"
+            @deleteHeader="deleteHeader"
+            @alphabetical="sortKeys"
           />
           <div class="col very-wide border-bottom border-dark" v-for="col in cols" :key="col">
             <headers
               :header="col"
-              @exportValues="exportRowsV3"
+              @exportValues="exportRow"
               @importValues="importing"
-              @deleteHeader="deleteHeaderV3"
-              @alphabetical="sortKeysV3"
+              @deleteHeader="deleteHeader"
+              @alphabetical="sortKeys"
             />
             <input type="file" hidden @change="importJSON" :id="col" ref="myFiles" accept=".json">
           </div>
         </div>
-        <div v-show="(viewType == 'All rows') || (viewType == 'Lacking rows' && (Object.keys(entry).length < cols.length + 1 || Object.values(entry).indexOf(null) > -1))" class="row standard-height flex-nowrap align-self-center mt-3" v-for="(entry,index) in tableEntriesV2" :key="entry">
-          <div v-show="(viewType == 'All rows') || (viewType == 'Lacking rows' && (Object.keys(entry).length < cols.length + 1 || Object.values(entry).indexOf(null) > -1))" class="col very-wide border-bottom">
+        <div v-show="(viewType == 'All rows') || (viewType == 'Lacking rows' && (Object.keys(entry).length < cols.length + 1 || Object.values(entry).indexOf(null) > -1))" class="row standard-height flex-nowrap align-self-center mt-3" v-for="(entry,index) in tableEntries" :key="entry">
+          <div class="col very-wide border-bottom">
             <tableData
               :val="entry['KEYS']"
               :rowNum="index"
               :header="'KEYS'"
-              @edit="editPhraseV3"
+              @edit="editPhrase"
               @setEdit="setEditPhrase"
-              @up="moveUpV3"
-              @down="moveDownV3"
-              @removeK="removeKeyV3"
-              @dupe="duplicateRowV3"
+              @up="moveUp"
+              @down="moveDown"
+              @removeK="removeKey"
+              @dupe="duplicateRow"
             />
           </div>
-          <div v-show="(viewType == 'All rows') || (viewType == 'Lacking rows' && (Object.keys(entry).length < cols.length + 1 || Object.values(entry).indexOf(null) > -1))" class="col border-bottom very-wide" v-for="col in cols" :key="col">
+          <div class="col border-bottom very-wide" v-for="col in cols" :key="col">
             <div>
             <textarea
               class="form-control border-0"
@@ -69,18 +69,18 @@
         </div>
         <div class="row standard-height flex-nowrap align-self-center mt-4">
           <div class="col very-wide">
-            <button class="btn btn-outline-secondary rounded" @click="sortKeysV3">Sort (A-Z)</button>
+            <button class="btn btn-outline-secondary rounded" @click="sortKeys">Sort (A-Z)</button>
           </div>
         <div class="col very-wide" v-for="col in cols" :key="col">
           <button class="btn btn-outline-secondary" @click="importing(col)">Import</button>
-          <button class="btn btn-outline-secondary"  @click="exportRowsV3(col)">Export</button>
+          <button class="btn btn-outline-secondary"  @click="exportRows(col)">Export</button>
           <input type="file" hidden @change="importJSON" :id="col" ref="myFiles" accept=".json">
         </div>
       </div>
     </div>
   </div>
     <add-phrase
-      @addPhrase="newAddPhraseV3"
+      @addPhrase="newAddPhrase"
     />
     <div class="row standard-height mt-4">
       <div class="col">
@@ -113,7 +113,7 @@ export default {
       langName: '',
       phrase: '',
       cols: [],
-      tableEntriesV2:[],
+      tableEntries:[],
       keys: [],
       timer: Number,
       file: '',
@@ -141,8 +141,8 @@ export default {
       this.cols = JSON.parse(this.cols)
     }
     if(localStorage.getItem("tableEntries")){
-      this.tableEntriesV2 = localStorage.getItem("tableEntries")
-      this.tableEntriesV2 = JSON.parse(this.tableEntriesV2)
+      this.tableEntries = localStorage.getItem("tableEntries")
+      this.tableEntries = JSON.parse(this.tableEntries)
     }
     document.addEventListener("visibilitychange", this.handleVisibilityChange, false);
     this.handleVisibilityChange()
@@ -158,8 +158,8 @@ export default {
     resetTranslator(){
       this.keys = []
       this.cols = []
-      this.tableEntriesV2 = []
-      this.newStoreChangesV3()
+      this.tableEntries = []
+      this.newStoreChanges()
     },
     setEditPhrase(data,header,row){
       this.isEdited.col = header
@@ -178,7 +178,7 @@ export default {
     },
     startCacheTimer(){
       this.timer = setTimeout(() => {
-        this.newStoreChangesV3()
+        this.newStoreChanges()
         },30000)
     },
     notify(val){
@@ -218,63 +218,63 @@ export default {
       fr.onload = function () {
         jsonFile = fr.result
         jsonFile = JSON.parse(jsonFile)
-        this.compareKeysV3(jsonFile)
+        this.compareKeys(jsonFile)
       }.bind(this)
       fr.readAsText(theFile)
     },
-    compareKeysV3 (file){
+    compareKeys(file){
       for(let f in file){
         if(this.keys.indexOf(f) < 0){
           this.keys.push(f)
-          this.tableEntriesV2.push({'KEYS': f})
+          this.tableEntries.push({'KEYS': f})
         }
-        this.tableEntriesV2[this.keys.indexOf(f)][this.uploader] = file[f]
+        this.tableEntries[this.keys.indexOf(f)][this.uploader] = file[f]
       }
-      this.newStoreChangesV3()
+      this.newStoreChanges()
     },
-    newAddLanguageV3 (newLang){
+    newAddLanguage(newLang){
       this.stopCacheTimer()
       this.langName = newLang.toUpperCase()
       if(this.cols.indexOf(this.langName) == -1){
         if(this.langName.length > 0){
           this.cols.push(this.langName)
         }
-        this.newStoreChangesV3()
+        this.newStoreChanges()
       }else{
         this.notify(newLang)
       }
       this.langName = ''
     },   
-    newAddPhraseV3(newAddPhrase){
+    newAddPhrase(newAddPhrase){
       this.phrase = newAddPhrase
       if(this.keys.indexOf(this.phrase) == -1){
         if(this.phrase.length > 0){
           this.keys.push(this.phrase)
-          this.tableEntriesV2.push({'KEYS': this.phrase})
-          this.newStoreChangesV3()
+          this.tableEntries.push({'KEYS': this.phrase})
+          this.newStoreChanges()
         }
       }else{
         this.notify(newAddPhrase)
       }
       this.phrase = ''
     },
-    deleteHeaderV3 (val){
+    deleteHeader(val){
       var indx = this.cols.indexOf(val)
-      this.tableEntriesV2.forEach(el => {
+      this.tableEntries.forEach(el => {
         delete el[val]
       })
       this.cols.splice(indx,1)
     },
-    editPhraseV3(newVal){
+    editPhrase(newVal){
       var header = this.isEdited.data[1]
       var num = this.isEdited.data[2]
       if(newVal.target.value == null || newVal.target.value == ''){
-        this.removeKeyV3(num)
+        this.removeKey(num)
       }else{
-        this.tableEntriesV2[num][header] = newVal.target.value
+        this.tableEntries[num][header] = newVal.target.value
       }
     },
-    sortKeysV3(){
+    sortKeys(){
       var len = this.keys.length - 1
       var keyCopy = []
       var dir = []
@@ -293,59 +293,59 @@ export default {
         dir.push(this.keys.indexOf(el))
       })
       for(let ctr = 0; ctr <= len ; ctr++){
-        tempArr[ctr] = this.tableEntriesV2[dir[ctr]]
+        tempArr[ctr] = this.tableEntries[dir[ctr]]
       }
-      this.tableEntriesV2 = tempArr
+      this.tableEntries = tempArr
       this.keys.sort( (a,b) => {
         let x = a.toUpperCase(),
         y = b.toUpperCase()
         return x == y ? 0 : x > y ? 1 : -1
       })
     },
-    duplicateRowV3(indx){
-      this.tableEntriesV2.splice(indx,0,this.tableEntriesV2[indx])
+    duplicateRow(indx){
+      this.tableEntries.splice(indx,0,this.tableEntries[indx])
       this.keys.splice(indx,0,this.keys[indx])
     },
-    removeKeyV3 (indx){
-      this.tableEntriesV2.splice(indx,1)
+    removeKey(indx){
+      this.tableEntries.splice(indx,1)
       this.keys.splice(indx,1)
     },
-    moveDownV3 (indx) {
+    moveDown(indx) {
       var temp1,temp2
       if(this.keys.length - 1 > indx){
-        temp1 = this.tableEntriesV2[indx + 1]
-        temp2 = this.tableEntriesV2[indx]
-        this.tableEntriesV2[indx] = temp1
-        this.tableEntriesV2[indx + 1] = temp2      
+        temp1 = this.tableEntries[indx + 1]
+        temp2 = this.tableEntries[indx]
+        this.tableEntries[indx] = temp1
+        this.tableEntries[indx + 1] = temp2      
         this.keys.splice(indx,2,this.keys[indx + 1],this.keys[indx])
       }
     },
-    moveUpV3 (indx) {
+    moveUp(indx) {
       var temp1,temp2
       if(indx >= 1){
-        temp1 = this.tableEntriesV2[indx]
-        temp2 = this.tableEntriesV2[indx - 1]
-        this.tableEntriesV2[indx] = temp2
-        this.tableEntriesV2[indx - 1] = temp1
+        temp1 = this.tableEntries[indx]
+        temp2 = this.tableEntries[indx - 1]
+        this.tableEntries[indx] = temp2
+        this.tableEntries[indx - 1] = temp1
         this.keys.splice(indx - 1,2,this.keys[indx],this.keys[indx - 1])
       }
     },
-    newStoreChangesV3(){
+    newStoreChange(){
       var keys = JSON.stringify(this.keys)
       var cols = JSON.stringify(this.cols)
-      var toStore = JSON.stringify(this.tableEntriesV2)
+      var toStore = JSON.stringify(this.tableEntries)
       localStorage.setItem('tableEntries', toStore)
       localStorage.setItem('Keys', keys)
       localStorage.setItem('Columns', cols)
       this.startCacheTimer()
     },
-    exportRowsV3(header){
+    exportRows(header){
       clearTimeout(this.timer)
       var tempK, tempV
       var row = {}
-      for(let el in this.tableEntriesV2){
-        tempK = this.tableEntriesV2[el]['KEYS']
-        tempV = this.tableEntriesV2[el][header]
+      for(let el in this.tableEntries){
+        tempK = this.tableEntries[el]['KEYS']
+        tempV = this.tableEntries[el][header]
         Object.assign(row, {[tempK]: tempV})
       }
       var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(row, null, '\t'))
@@ -355,7 +355,7 @@ export default {
       document.body.appendChild(downloadAnchorNode)
       downloadAnchorNode.click()
       downloadAnchorNode.remove()
-      this.newStoreChangesV3()
+      this.newStoreChanges()
     },
   }
 }
