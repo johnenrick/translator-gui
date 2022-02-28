@@ -41,8 +41,8 @@
             <input type="file" hidden @change="importJSON" :id="col" ref="myFiles" accept=".json">
           </div>
         </div>
-        <div class="row standard-height flex-nowrap align-self-center mt-3" v-for="(entry,index) in tableEntriesV2" :key="entry">
-          <div class="col very-wide border-bottom" v-show="viewType == 'All rows'">
+        <div v-show="(viewType == 'All rows') || (viewType == 'Lacking rows' && (Object.keys(entry).length < cols.length + 1 || Object.values(entry).indexOf(null) > -1))" class="row standard-height flex-nowrap align-self-center mt-3" v-for="(entry,index) in tableEntriesV2" :key="entry">
+          <div v-show="(viewType == 'All rows') || (viewType == 'Lacking rows' && (Object.keys(entry).length < cols.length + 1 || Object.values(entry).indexOf(null) > -1))" class="col very-wide border-bottom">
             <tableData
               :val="entry['KEYS']"
               :rowNum="index"
@@ -55,8 +55,8 @@
               @dupe="duplicateRowV3"
             />
           </div>
-          <div  class="col border-bottom very-wide" v-for="col in cols" :key="col">
-            <div v-show="viewType == 'All rows'">
+          <div v-show="(viewType == 'All rows') || (viewType == 'Lacking rows' && (Object.keys(entry).length < cols.length + 1 || Object.values(entry).indexOf(null) > -1))" class="col border-bottom very-wide" v-for="col in cols" :key="col">
+            <div>
             <textarea
               class="form-control border-0"
               @change="setEditPhrase($event)"
