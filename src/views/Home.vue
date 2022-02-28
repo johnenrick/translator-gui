@@ -20,7 +20,7 @@
       </div>
     </div>
     <div class="container testimonial-group">
-      <div class="col flex-nowrap align-self-center">
+      <div class="row align-self-center">
         <div class="row standard-height flex-nowrap align-self-center">
           <headers
             class="col border-bottom border-dark very-wide"
