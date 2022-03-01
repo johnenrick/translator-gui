@@ -33,7 +33,7 @@
           <div class="col very-wide border-bottom border-dark" v-for="col in cols" :key="col">
             <headers
               :header="col"
-              @exportValues="exportRow"
+              @exportValues="exportRows"
               @importValues="importing"
               @deleteHeader="deleteHeader"
               @alphabetical="sortKeys"
