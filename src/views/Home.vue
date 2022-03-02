@@ -12,7 +12,7 @@
       </div>
     </div>
     <addLanguage
-      @addLang="newAddLanguage"
+      @addLang="addLanguage"
     />
     <div class="row standard-height">
       <div class="col">
@@ -80,7 +80,7 @@
     </div>
   </div>
     <add-phrase
-      @addPhrase="newAddPhrase"
+      @addPhrase="addPhrase"
     />
     <div class="row standard-height mt-4">
       <div class="col">
@@ -159,7 +159,7 @@ export default {
       this.keys = []
       this.cols = []
       this.tableEntries = []
-      this.newStoreChanges()
+      this.storeChanges()
     },
     setEditPhrase(data,header,row){
       this.isEdited.col = header
@@ -178,7 +178,7 @@ export default {
     },
     startCacheTimer(){
       this.timer = setTimeout(() => {
-        this.newStoreChanges()
+        this.storeChanges()
         },30000)
     },
     notify(val){
@@ -230,31 +230,31 @@ export default {
         }
         this.tableEntries[this.keys.indexOf(f)][this.uploader] = file[f]
       }
-      this.newStoreChanges()
+      this.storeChanges()
     },
-    newAddLanguage(newLang){
+    addLanguage(newLang){
       this.stopCacheTimer()
       this.langName = newLang.toUpperCase()
       if(this.cols.indexOf(this.langName) == -1){
         if(this.langName.length > 0){
           this.cols.push(this.langName)
         }
-        this.newStoreChanges()
+        this.storeChanges()
       }else{
         this.notify(newLang)
       }
       this.langName = ''
     },   
-    newAddPhrase(newAddPhrase){
-      this.phrase = newAddPhrase
+    addPhrase(newPhrase){
+      this.phrase = newPhrase
       if(this.keys.indexOf(this.phrase) == -1){
         if(this.phrase.length > 0){
           this.keys.push(this.phrase)
           this.tableEntries.push({'KEYS': this.phrase})
-          this.newStoreChanges()
+          this.storeChanges()
         }
       }else{
-        this.notify(newAddPhrase)
+        this.notify(newPhrase)
       }
       this.phrase = ''
     },
@@ -330,7 +330,7 @@ export default {
         this.keys.splice(indx - 1,2,this.keys[indx],this.keys[indx - 1])
       }
     },
-    newStoreChange(){
+    storeChanges(){
       var keys = JSON.stringify(this.keys)
       var cols = JSON.stringify(this.cols)
       var toStore = JSON.stringify(this.tableEntries)
@@ -355,7 +355,7 @@ export default {
       document.body.appendChild(downloadAnchorNode)
       downloadAnchorNode.click()
       downloadAnchorNode.remove()
-      this.newStoreChanges()
+      this.storeChanges()
     },
   }
 }
