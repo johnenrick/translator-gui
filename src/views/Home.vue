@@ -14,11 +14,9 @@
     <addLanguage
       @addLang="addLanguage"
     />
-    <div class="row standard-height">
-      <div class="col">
-        <p>Displaying : <button @click="switchView()" class="btn btn-outline-secondary">{{viewType}}</button></p>
-      </div>
-    </div>
+    <view-switcher
+      @switch="switchView"
+    />
     <div class="container testimonial-group">
       <div class="row align-self-center">
         <div class="row standard-height flex-nowrap align-self-center">
@@ -43,7 +41,7 @@
         </div>
         <div v-show="(viewType == 'All rows') || (viewType == 'Lacking rows' && (Object.keys(entry).length < cols.length + 1 || Object.values(entry).indexOf(null) > -1))" class="row standard-height flex-nowrap align-self-center mt-3" v-for="(entry,index) in tableEntries" :key="entry">
           <div class="col very-wide border-bottom">
-            <tableData
+            <table-data
               :val="entry['KEYS']"
               :rowNum="index"
               :header="'KEYS'"
@@ -98,6 +96,7 @@ import headers from "../components/Headers.vue"
 import tableData from "../components/TableData.vue"
 import addLanguage from "../components/AddLanguage.vue"
 import addPhrase from "../components/AddPhrase.vue"
+import viewSwitcher from "../components/viewSwitcher.vue"
 
 export default {
   name: 'Home',
@@ -105,10 +104,12 @@ export default {
     headers,
     tableData,
     addLanguage,
-    addPhrase
+    addPhrase,
+    viewSwitcher
   },
   data() {
     return {
+      viewType2: '',
       viewType: 'All rows',
       langName: '',
       phrase: '',
@@ -144,14 +145,15 @@ export default {
       this.tableEntries = localStorage.getItem("tableEntries")
       this.tableEntries = JSON.parse(this.tableEntries)
     }
-    document.addEventListener("visibilitychange", this.handleVisibilityChange, false);
+    document.addEventListener("visibilitychange", this.handleVisibilityChange, false)
     this.handleVisibilityChange()
   },
   methods: {
-    switchView(){
-      if(this.viewType == 'All rows'){
+    switchView(val){
+      var status = val.target.checked
+      if(status){
         this.viewType = 'Lacking rows'
-      }else if(this.viewType == "Lacking rows"){
+      }else{
         this.viewType = 'All rows'
       }
     },
