@@ -46,7 +46,6 @@
               :rowNum="index"
               :header="'KEYS'"
               @edit="editPhrase"
-              @setEdit="setEditPhrase"
               @up="moveUp"
               @down="moveDown"
               @removeK="removeKey"
@@ -58,7 +57,6 @@
             <textarea
               class="form-control border-0"
               @change="setEditPhrase($event)"
-              @click="setEditPhrase(entry[col],col,index)"
               :value="entry[col]"
               type="text"
             />
@@ -109,7 +107,6 @@ export default {
   },
   data() {
     return {
-      viewType2: '',
       viewType: 'All rows',
       langName: '',
       phrase: '',
@@ -118,11 +115,6 @@ export default {
       keys: [],
       timer: Number,
       file: '',
-      isEdited: {
-        col: String,
-        data: String,
-        index: Number
-      },
       uploader: '',
       keyTableLength: Number,
       isNotifyingLang: true,
@@ -162,11 +154,6 @@ export default {
       this.cols = []
       this.tableEntries = []
       this.storeChanges()
-    },
-    setEditPhrase(data,header,row){
-      this.isEdited.col = header
-      this.isEdited.data = data
-      this.isEdited.index = row
     },
     handleVisibilityChange(){
       if(document.visibilityState == 'hidden'){
@@ -216,23 +203,20 @@ export default {
       this.stopCacheTimer()
       var theFile = event.target.files[0]
       var fr = new FileReader
-      var jsonFile
+      var file
       fr.onload = function () {
-        jsonFile = fr.result
-        jsonFile = JSON.parse(jsonFile)
-        this.compareKeys(jsonFile)
+        file = fr.result
+        file = JSON.parse(file)
+        for(let f in file){
+          if(this.keys.indexOf(f) < 0){
+            this.keys.push(f)
+            this.tableEntries.push({'KEYS': f})
+          }
+          this.tableEntries[this.keys.indexOf(f)][this.uploader] = file[f]
+        }
+        this.storeChanges()
       }.bind(this)
       fr.readAsText(theFile)
-    },
-    compareKeys(file){
-      for(let f in file){
-        if(this.keys.indexOf(f) < 0){
-          this.keys.push(f)
-          this.tableEntries.push({'KEYS': f})
-        }
-        this.tableEntries[this.keys.indexOf(f)][this.uploader] = file[f]
-      }
-      this.storeChanges()
     },
     addLanguage(newLang){
       this.stopCacheTimer()
@@ -267,13 +251,11 @@ export default {
       })
       this.cols.splice(indx,1)
     },
-    editPhrase(newVal){
-      var header = this.isEdited.data[1]
-      var num = this.isEdited.data[2]
-      if(newVal.target.value == null || newVal.target.value == ''){
-        this.removeKey(num)
+    editPhrase(vals){
+      if(vals[0].target.value == null || vals[0].target.value == ''){
+        this.removeKey(vals[2])
       }else{
-        this.tableEntries[num][header] = newVal.target.value
+        this.tableEntries[vals[2]][vals[1]] = vals[0].target.value
       }
     },
     sortKeys(){

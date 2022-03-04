@@ -15,7 +15,7 @@
     export default {
         name: "Headers",
         props: {
-            header: String
+            header: String //to be displayed in the table
         },
     }
 </script>

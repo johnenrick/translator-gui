@@ -4,7 +4,7 @@
             <div class="input-group-prepend" v-show="header == 'KEYS'">
                 <span class="input-group-text">{{rowNum + 1}}</span>
             </div>
-            <textarea rows="1" class="form-control border-0" @change="$emit('edit',$event)" @click="$emit('setEdit',[val,header,rowNum]);isHidden = !isHidden" :value="val" type="text"/>
+            <textarea rows="1" class="form-control border-0" @change="$emit('edit',[$event,header,rowNum])" :value="val" type="text"/>
             <div class="align-self-center">
                 <button class="btn btn-outline-secondary icon-size"  @click="$emit('dupe',rowNum)"><font-awesome-icon :icon="['fas', 'clone']" /></button>
                 <button class="btn btn-outline-secondary icon-size"  @click="$emit('up',rowNum)"><font-awesome-icon :icon="['fas', 'arrow-up']" /></button>
@@ -25,23 +25,10 @@
             FontAwesomeIcon
         },
         props: {
-            val: String,
-            header: String,
-            rowNum: Number
+            val: String, // to be shown in the table
+            header: String, // to identify which column this phrase belong
+            rowNum: Number // used to display the row's order in the table
         },
-        data (){
-            return{
-                isHidden: true,
-                newVal : this.val,
-                newRowNum: this.rowNum
-            }
-        },
-        methods: {
-            setNewVal(v){
-                this.newVal = v.target.value
-                this.newRowNum = this.rowNum
-            }
-        }
     }
 </script>
 
