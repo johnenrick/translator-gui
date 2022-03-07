@@ -3,7 +3,14 @@
     <div class="row">
       <h1>JSON Translator</h1>
     </div>
-    <button class="btn btn-danger" @click="resetTranslator">Reset</button>
+    <div class="row standard-height">
+      <div class="col">
+        <button class="btn btn-danger" @click="resetTranslator">Reset</button>
+      </div>
+      <div class="col">
+        <button @click="storeChanges" class="btn btn-info">Save</button>
+      </div>
+    </div>
     <div class="row standard-height mt-4">
       <div class="col">
         <div :hidden="isNotifyingLang" class="alert " :class="notifClass" role="alert">
