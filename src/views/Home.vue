@@ -5,10 +5,10 @@
     </div>
     <div class="row standard-height">
       <div class="col">
-        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exampleModal">Reset</button>
+        <button class="btn btn-danger button-width" title="Resets table into an empty one" data-bs-toggle="modal" data-bs-target="#exampleModal">Reset</button>
       </div>
       <div class="col">
-        <button @click="storeChanges" class="btn btn-info">Save</button>
+        <button @click="storeChanges" title="manually save changes" class="btn btn-info button-width">Save</button>
       </div>
     </div>
     <div class="row standard-height mt-4">
@@ -52,6 +52,7 @@
               :val="entry['KEYS']"
               :rowNum="index"
               :header="'KEYS'"
+              :isDisabled="isDisabled"
               @edit="editPhrase"
               @up="moveUp"
               @down="moveDown"
@@ -72,11 +73,11 @@
         </div>
         <div class="row standard-height flex-nowrap align-self-center mt-4">
           <div class="col very-wide">
-            <button class="btn btn-outline-secondary rounded" @click="sortKeys">Sort (A-Z)</button>
+            <button title="Rearranges the table in alphabetical order" class="btn btn-outline-secondary rounded" @click="sortKeys">Sort (A-Z)</button>
           </div>
         <div class="col very-wide" v-for="col in cols" :key="col">
-          <button class="btn btn-outline-secondary" @click="importing(col)">Import</button>
-          <button class="btn btn-outline-secondary"  @click="exportRows(col)">Export</button>
+          <button title="Inserts a JSON file to be translated into this column" class="btn btn-outline-secondary" @click="importing(col)">Import</button>
+          <button title="Creates a JSON file containing key:value pairs from this column" class="btn btn-outline-secondary"  @click="exportRows(col)">Export</button>
           <input type="file" hidden @change="importJSON" :id="col" ref="myFiles" accept=".json">
         </div>
       </div>
@@ -132,6 +133,7 @@ export default {
   data() {
     return {
       viewType: 'All rows',
+      isDisabled: false,
       langName: '',
       phrase: '',
       cols: [],
@@ -169,8 +171,10 @@ export default {
       var status = val.target.checked
       if(status){
         this.viewType = 'Lacking rows'
+        this.isDisabled = true
       }else{
         this.viewType = 'All rows'
+        this.isDisabled = false
       }
     },
     resetTranslator(){
@@ -383,5 +387,8 @@ export default {
 }
 .standard-height{
   min-height: 50px;
+}
+.button-width{
+  width: 150px;
 }
 </style>
