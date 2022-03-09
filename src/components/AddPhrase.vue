@@ -1,7 +1,7 @@
 <template>
     <div class="row p-4">
       <div class="input-group">
-        <button class="btn btn-outline-primary" @click="$emit('addPhrase',phrase); this.phrase = ''">Add Phrase</button>
+        <button class="btn btn-outline-primary" title="Adds a new phrase in the KEYS columns" @click="$emit('addPhrase',phrase); this.phrase = ''">Add Phrase</button>
         <input class="form-control" @keydown.enter="$emit('addPhrase',phrase); this.phrase = ''" v-model="phrase">
       </div>
     </div>
