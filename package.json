@@ -52,6 +52,7 @@
     "pre-commit": "lint-staged"
   },
   "lint-staged": {
+    "ignorePatterns": ["docs/"],
     "*.{js,vue}": [
       "vue-cli-service lint",
       "git add"
