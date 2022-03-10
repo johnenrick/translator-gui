@@ -52,7 +52,11 @@
     "pre-commit": "lint-staged"
   },
   "lint-staged": {
-    "ignorePatterns": ["docs/"],
+    "ignorePatterns": ["docs/**/*.*"],
+    "!(docs/**/*)*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
     "*.{js,vue}": [
       "vue-cli-service lint",
       "git add"
